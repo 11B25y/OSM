@@ -26,8 +26,7 @@ struct ContentView: View {
                 
                 VStack {
                          if !hasProfile {
-                             // ProfileSignupView is shown when the user doesn't have a profile
-                             ProfileSignupView(hasProfile: $hasProfile, currentUserProfile: $currentUserProfile) // Pass bindings here
+                             ProfileSignupView(hasProfile: $hasProfile, currentUserProfile: $currentUserProfile)
                          } else {
                         // Main content when profile exists
                         if let profile = currentUserProfile {
@@ -209,11 +208,13 @@ struct ContentView: View {
     
     // Subview for navigation links
 struct NavigationLinksView: View {
-    @Binding var currentUser: UserProfile?
+    @Binding var currentUserProfile: UserProfile?  // Make sure you're binding currentUserProfile properly
+    @Binding var hasProfile: Bool
+
     var body: some View {
         VStack {
             NavigationLink(
-                destination: ExploringView(currentUserProfile: $currentUserProfile, hasProfile: $hasProfile)
+                destination: ExploringView(currentUserProfile: $currentUserProfile, hasProfile: $hasProfile)  // Corrected binding for currentUserProfile and hasProfile
             ) {
                 Text("Explore")
                     .padding()
@@ -233,5 +234,3 @@ struct NavigationLinksView: View {
         }
     }
 }
-    
-
