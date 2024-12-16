@@ -2,10 +2,9 @@ import SwiftUI
 import Combine
 import MultipeerConnectivity
 
-
 struct ExploringView: View {
     @EnvironmentObject private var proximityManager: ProximityManager
-    @Binding var currentUser: UserProfile? // Accept currentUser as a binding
+    @Binding var currentUserProfile: UserProfile?  // Binding for the current user profile
     @Binding var hasProfile: Bool
     @State private var selectedPeer: UserProfile?
     @State private var enlargedProfile: UserProfile?
@@ -22,7 +21,7 @@ struct ExploringView: View {
     @State private var showBioEditing: Bool = false
     @State private var showProfileCreationView = false
     @State private var generatedCode: String?
-    
+
     var body: some View {
         ZStack {
             VStack {
@@ -32,20 +31,15 @@ struct ExploringView: View {
                     connectedPeerBubblesView()  // Display connected peers
                 }
                 
-                // Explore Button
-                NavigationLink(destination: ProfilePageView(
-                    hasProfile: $hasProfile,
-                    profile: $currentUser,
-                    isCreatingProfile: Binding.constant(false),
-                    peer: proximityManager.getPeerID()
-                )) {
+                // Explore Button with NavigationLink to ExploringView
+                NavigationLink(destination: ExploringView(currentUserProfile: $currentUserProfile, hasProfile: $hasProfile)) {
                     Text("Explore")
                         .padding()
                         .background(Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
-                .padding(.top)
+                  .padding(.top) // Add padding to place the button appropriately
                 
                 VStack {
                     HStack {
@@ -60,10 +54,10 @@ struct ExploringView: View {
                     }
                     .padding()
                     .onChange(of: isDarkMode) { _ in
+                        setAppearance(isDark: isDarkMode)
                     }
                 }
                 .padding(.top)
-                .preferredColorScheme(isDarkMode ? .dark : .light)
             }
             
             // ImagePicker presentation
@@ -93,7 +87,7 @@ struct ExploringView: View {
             )
         }
         .preferredColorScheme(isDarkMode ? .dark : .light)
-        }
+    }
     
     private func setupErrorHandling() {
         proximityManager.$error
@@ -116,7 +110,7 @@ struct ExploringView: View {
                             if enlargedProfile.peerID == peer.peerID {
                                 // Set the profile when the peerIDs match
                                 self.enlargedProfile = enlargedProfile
-                                self.currentUser = enlargedProfile  // Update current user with selected profile
+                                self.currentUserProfile = enlargedProfile  // Update current user with selected profile
                             }
                         }
                     }) {
@@ -138,6 +132,15 @@ struct ExploringView: View {
                         .shadow(radius: 1)
                 }
             }
+        }
+    }
+
+    // Function to set appearance based on dark/light mode
+    private func setAppearance(isDark: Bool) {
+        if isDark {
+            UIApplication.shared.windows.first?.rootViewController?.view.overrideUserInterfaceStyle = .dark
+        } else {
+            UIApplication.shared.windows.first?.rootViewController?.view.overrideUserInterfaceStyle = .light
         }
     }
 }

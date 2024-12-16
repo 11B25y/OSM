@@ -91,7 +91,10 @@ struct ProfileSignupView: View {
             Spacer()
             
             // Navigate to Exploring View when profile is created
-            NavigationLink(destination: ExploringView(currentUserProfile: $currentUserProfile), isActive: $hasProfile) {
+            NavigationLink(
+                destination: ExploringView(currentUserProfile: $currentUserProfile, hasProfile: $hasProfile),
+                isActive: $hasProfile
+            ) {
                 EmptyView() // Navigation trigger
             }
         }

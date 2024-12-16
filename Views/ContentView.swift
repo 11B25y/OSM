@@ -9,7 +9,7 @@ struct ContentView: View {
     @State private var errorMessage = ""
     @State private var isShowingAlert = false
     @State private var hasProfile: Bool = false
-    @State private var currentUserProfile: UserProfile?
+    @State private var currentUserProfile: UserProfile? = nil
     @State private var showProfilePage: Bool = false
     @State private var showImagePicker: Bool = false
     @State private var isCreatingProfile: Bool = false  // This is to allow editing profile
@@ -102,8 +102,8 @@ struct ContentView: View {
                 .sheet(item: $selectedPeer) { peer in
                     ProfilePageView(
                         hasProfile: $hasProfile,
-                        profile: $currentUserProfile,  // Profile argument comes first
-                        isCreatingProfile: Binding.constant(false),  // isCreatingProfile argument comes second
+                        profile: $currentUserProfile, // Pass the binding here
+                        isCreatingProfile: Binding.constant(false),
                         peer: proximityManager.getPeerID()
                     )
                 }
@@ -120,9 +120,8 @@ struct ContentView: View {
                    }
                }
                .sheet(isPresented: $navigateToExploring) {
-                   // Once profile is created, navigate to ExploringView
-                   ExploringView(currentUser: $currentUserProfile)
-    }
+                   ExploringView(currentUserProfile: $currentUserProfile, hasProfile: $hasProfile)
+               }
     }
 }
 
@@ -214,13 +213,14 @@ struct NavigationLinksView: View {
     var body: some View {
         VStack {
             NavigationLink(
-                "Explore Connected Peers",
-                destination: ExploringView(currentUser: $currentUser)
-            )
-            .padding()
-            .background(Color.blue)
-            .foregroundColor(.white)
-            .cornerRadius(10)
+                destination: ExploringView(currentUserProfile: $currentUserProfile, hasProfile: $hasProfile)
+            ) {
+                Text("Explore")
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
             
             NavigationLink(destination: SettingsView()) {
                 Text("Settings")

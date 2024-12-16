@@ -28,8 +28,7 @@ struct osmApp: App {
                         .environmentObject(proximityManager)
                         .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 } else {
-                    NavigationView {
-                        ExploringView(currentUser: $currentUserProfile, hasProfile: <#Binding<Bool>#>)  // Pass currentUserProfile
+                    ExploringView(currentUserProfile: $currentUserProfile, hasProfile: $hasProfile)
                             .environmentObject(proximityManager)
                             .environment(\.managedObjectContext, persistenceController.container.viewContext)
                             .navigationBarItems(trailing: Button(action: {
@@ -42,8 +41,8 @@ struct osmApp: App {
                                 if let currentUserProfile = proximityManager.currentUserProfile {
                                     ProfilePageView(
                                         hasProfile: $hasProfile,
-                                        profile: Binding.constant(currentUserProfile),
-                                        isCreatingProfile: $isCreatingProfile, // Pass the binding here
+                                        profile: $currentUserProfile, // Pass the binding here
+                                        isCreatingProfile: Binding.constant(false),
                                         peer: proximityManager.getPeerID()
                                     )
                                     .environmentObject(proximityManager)
@@ -60,4 +59,4 @@ struct osmApp: App {
             }
         }
     }
-}
+
