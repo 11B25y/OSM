@@ -1,0 +1,6 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -scheme "platform=iOS Simulator,name=iPhone 14" build
+
+User defaults from command line:
+    IDEPackageSupportUseBuiltinSCM = YES
+
