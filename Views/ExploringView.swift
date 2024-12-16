@@ -32,9 +32,10 @@ struct ExploringView: View {
                     connectedPeerBubblesView()  // Display connected peers
                 }
                 
+                // Explore Button
                 NavigationLink(destination: ProfilePageView(
                     hasProfile: $hasProfile,
-                    profile: $currentUserProfile,
+                    profile: $currentUser,
                     isCreatingProfile: Binding.constant(false),
                     peer: proximityManager.getPeerID()
                 )) {
