@@ -13,113 +13,103 @@ struct ProfileSignupView: View {
     @State private var bio: String = ""
     @State private var avatarImage: UIImage? = nil
     @State private var showImagePicker = false
-    @State private var showProfilePage = false
     @State private var errorMessage: String = ""
     @State private var age: Int? = nil
-    
+
     var body: some View {
-        VStack {
-            Text("Create Your Profile")
-                .font(.largeTitle)
-                .padding()
-            
-            // Avatar Image Picker
-            Button(action: {
-                showImagePicker = true
-            }) {
-                ZStack {
-                    if let avatarImage = avatarImage {
-                        Image(uiImage: avatarImage)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 100, height: 100)
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.gray, lineWidth: 2))
-                    } else {
-                        Circle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 100, height: 100)
-                            .overlay(
-                                Image(systemName: "camera")
-                                    .foregroundColor(.gray)
-                            )
+        NavigationStack {
+            VStack {
+                Text("Create Your Profile")
+                    .font(.largeTitle)
+                    .padding()
+                
+                // Avatar Image Picker
+                Button(action: {
+                    showImagePicker = true
+                }) {
+                    ZStack {
+                        if let avatarImage = avatarImage {
+                            Image(uiImage: avatarImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 100, height: 100)
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(Color.gray, lineWidth: 2))
+                        } else {
+                            Circle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(width: 100, height: 100)
+                                .overlay(
+                                    Image(systemName: "camera")
+                                        .foregroundColor(.gray)
+                                )
+                        }
                     }
                 }
-            }
-            .sheet(isPresented: $showImagePicker) {
-                ImagePicker(selectedImage: $avatarImage)
-            }
-            
-            // User Info Fields
-            TextField("Username", text: $username)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
-            
-            TextField("Email", text: $email)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding(.horizontal)
-                .keyboardType(.emailAddress)
-            
-            TextField("Age", value: $age, formatter: NumberFormatter())
-                .keyboardType(.numberPad)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
-            
-            TextField("Bio", text: $bio)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding(.horizontal)
-            
-            // Error Message Display
-            if !errorMessage.isEmpty {
-                Text(errorMessage)
-                    .foregroundColor(.red)
+                .sheet(isPresented: $showImagePicker) {
+                    ImagePicker(selectedImage: $avatarImage)
+                }
+                
+                // User Info Fields
+                TextField("Username", text: $username)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding()
-            }
-            
-            Spacer()
-            
-            // Create Profile Button
-            Button("Create Profile") {
-                createProfile()
-                hasProfile = true
+                
+                TextField("Email", text: $email)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                    .keyboardType(.emailAddress)
+                
+                TextField("Age", value: $age, formatter: NumberFormatter())
+                    .keyboardType(.numberPad)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding()
+                
+                TextField("Bio", text: $bio)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                
+                // Error Message Display
+                if !errorMessage.isEmpty {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .padding()
+                }
+                
+                Spacer()
+                
+                // Create Profile Button
+                Button("Create Profile") {
+                    createProfile()
+                }
+                .padding()
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+                
+                Spacer()
             }
             .padding()
-            .background(Color.blue)
-            .foregroundColor(.white)
-            .cornerRadius(10)
-            
-            Spacer()
-            
-            // Navigate to Exploring View when profile is created
-            NavigationLink(
-                destination: ExploringView(currentUserProfile: $currentUserProfile, hasProfile: $hasProfile),
-                isActive: $hasProfile
-            ) {
-                EmptyView() // Navigation trigger
+            .navigationDestination(isPresented: $hasProfile) {
+                ExploringView(currentUserProfile: $currentUserProfile, hasProfile: $hasProfile)
             }
         }
-        .padding()
     }
     
     private func createProfile() {
-        // Log the age value to check what was entered
         print("Age value: \(String(describing: age))")
-        
-        // Validate input
         guard !username.isEmpty, !email.isEmpty, !bio.isEmpty, let validAge = age, validAge > 0 else {
             errorMessage = "Please fill in all fields correctly."
             return
         }
         
-        // Create the profile and save it
         let profile = UserProfile(context: context)
         profile.username = username
         profile.email = email
         profile.bio = bio
-        profile.age = Int16(validAge) // Store the age as Int16
+        profile.age = Int16(validAge)
         profile.isLoggedIn = true
         
-        // Save avatar image (if provided) as a URL string in Core Data
         if let avatarImage = avatarImage {
             let imageName = "avatar_\(username)"
             if let savedURL = ImageManager.saveImage(avatarImage, withName: imageName) {
@@ -128,17 +118,13 @@ struct ProfileSignupView: View {
         }
         
         do {
-            try context.save()  // Save the profile to Core Data
-            print("Profile saved successfully")
-            
-            // After saving the profile, update the currentUserProfile in ProximityManager
+            try context.save()
             proximityManager.currentUserProfile = profile
-            currentUserProfile = profile // Set the state variable to the newly created profile
-            hasProfile = true  // Trigger the UI update by setting hasProfile to true
-            
+            currentUserProfile = profile
+            hasProfile = true
+            print("hasProfile in ProfileSignupView (inside createProfile): \(hasProfile)")
         } catch {
             errorMessage = "Failed to save profile: \(error.localizedDescription)"
-            print("Failed to save profile: \(error.localizedDescription)")
         }
     }
 }

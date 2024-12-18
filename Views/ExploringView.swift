@@ -21,7 +21,7 @@ struct ExploringView: View {
     @State private var showBioEditing: Bool = false
     @State private var showProfileCreationView = false
     @State private var generatedCode: String?
-
+    
     var body: some View {
         ZStack {
             VStack {
@@ -30,19 +30,15 @@ struct ExploringView: View {
                 } else {
                     connectedPeerBubblesView()  // Display connected peers
                 }
-                
-                // Explore Button with NavigationLink to ExploringView
-                NavigationLink(destination: ExploringView(currentUserProfile: $currentUserProfile, hasProfile: $hasProfile)) {
-                    Text("Explore")
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                  .padding(.top) // Add padding to place the button appropriately
-                
-                VStack {
-                    HStack {
+                Spacer()
+            }
+            
+            // Bottom-right emoji toggle
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    HStack(spacing: 10) {
                         Text("🌞").font(.system(size: 20))
                         Toggle(isOn: $isDarkMode) {
                             Text("")
@@ -52,14 +48,13 @@ struct ExploringView: View {
                         .scaleEffect(0.5)
                         Text("🌚").font(.system(size: 20))
                     }
-                    .padding()
-                    .onChange(of: isDarkMode) { _ in
-                        setAppearance(isDark: isDarkMode)
+                    .padding(20)
+                    .onChange(of: isDarkMode) { oldValue, newValue in
+                        setAppearance(isDark: newValue)
                     }
                 }
-                .padding(.top)
             }
-            
+
             // ImagePicker presentation
             .sheet(isPresented: $showImagePicker) {
                 ImagePicker(selectedImage: $selectedImage)
@@ -103,27 +98,25 @@ struct ExploringView: View {
         ZStack {
             ForEach(proximityManager.connectedPeers, id: \.peerID) { peer in
                 VStack {
-                    // Display profile picture and peer name
                     Button(action: {
-                        // Compare peerID inside UserProfile
                         if let enlargedProfile = peer.profile {
                             if enlargedProfile.peerID == peer.peerID {
-                                // Set the profile when the peerIDs match
                                 self.enlargedProfile = enlargedProfile
-                                self.currentUserProfile = enlargedProfile  // Update current user with selected profile
+                                self.currentUserProfile = enlargedProfile
                             }
                         }
                     }) {
                         Image(systemName: "person.circle.fill")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: enlargedProfile?.peerID == peer.peerID ? 60 : 40, height: enlargedProfile?.peerID == peer.peerID ? 60 : 40)
+                            .frame(width: enlargedProfile?.peerID == peer.peerID ? 60 : 40,
+                                   height: enlargedProfile?.peerID == peer.peerID ? 60 : 40)
                             .background(Color.white)
                             .clipShape(Circle())
                             .overlay(Circle().stroke(Color.white, lineWidth: 2))
                             .shadow(radius: 3)
                     }
-                    Text(peer.profile?.wrappedUsername ?? "Unknown User")  // Display username or fallback
+                    Text(peer.profile?.wrappedUsername ?? "Unknown User")
                         .font(.system(size: 10))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
@@ -134,13 +127,12 @@ struct ExploringView: View {
             }
         }
     }
-
-    // Function to set appearance based on dark/light mode
+    
     private func setAppearance(isDark: Bool) {
-        if isDark {
-            UIApplication.shared.windows.first?.rootViewController?.view.overrideUserInterfaceStyle = .dark
-        } else {
-            UIApplication.shared.windows.first?.rootViewController?.view.overrideUserInterfaceStyle = .light
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            for window in windowScene.windows {
+                window.overrideUserInterfaceStyle = isDark ? .dark : .light
+            }
         }
     }
 }

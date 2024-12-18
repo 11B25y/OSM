@@ -37,7 +37,7 @@ struct MessagingView: View {
             HStack {
                 TextField("Enter message", text: $message)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .onChange(of: message) { _ in
+                    .onChange(of: message) {
                         isTyping = !message.isEmpty
                     }
                 
@@ -119,7 +119,7 @@ struct MessageListView: View {
                 }
                 .padding()
             }
-            .onChange(of: messages.count) { _ in
+            .onChange(of: messages.count) { _, _ in
                 scrollViewProxy.scrollTo(messages.count - 1)
             }
         }

@@ -38,7 +38,8 @@ struct osmApp: App {
                                     .font(.title)
                             })
                             .sheet(isPresented: $showProfilePageView) {
-                                if let currentUserProfile = proximityManager.currentUserProfile {
+                                if proximityManager.currentUserProfile != nil {
+                                    // Code block
                                     ProfilePageView(
                                         hasProfile: $hasProfile,
                                         profile: $currentUserProfile, // Pass the binding here
