@@ -1,6 +1,6 @@
 import Foundation
-import MultipeerConnectivity
 import CoreData
+import MultipeerConnectivity
 
 @objc(UserProfile)
 public class UserProfile: NSManagedObject {
@@ -21,9 +21,9 @@ public class UserProfile: NSManagedObject {
     @NSManaged public var socialMediaLinks: NSSet?
     @NSManaged public var userRating: UserRating?
 
-    @NSManaged public var peerID: MCPeerID?  // Add this field to store peerID
+    @NSManaged public var peerID: MCPeerID?  // Corrected to MCPeerID
 
-    // MARK: - Computed Properties (from the old version)
+    // MARK: - Computed Properties
     public var wrappedUsername: String {
         username ?? "Unknown User"
     }
