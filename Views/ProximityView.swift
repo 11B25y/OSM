@@ -208,7 +208,7 @@ struct ProximityView: View {
             
             if let data = message.data(using: .utf8) {
                 // Ensure that the selectedUser is of type UserProfile and extract peerID from it
-                if let peer = selectedUser, let peerID = peer.peerID {
+                if let peer = selectedUser, let peerID = peer.peerIDObject {
                     proximityManager.send(data: data, to: [peerID])
                 }
             }

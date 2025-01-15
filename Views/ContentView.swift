@@ -198,13 +198,17 @@ struct SelectedUserProfileView: View {
 }
 
 struct NavigationLinksView: View {
-    @Binding var currentUserProfile: UserProfile?  // Ensure it's correctly bound here
+    @Binding var currentUserProfile: UserProfile? // Ensure it's correctly bound here
     @Binding var hasProfile: Bool
+    @EnvironmentObject var proximityManager: ProximityManager // Use @EnvironmentObject here
 
     var body: some View {
         VStack {
             NavigationLink(
-                destination: ExploringView(currentUserProfile: $currentUserProfile, hasProfile: $hasProfile)
+                destination: ExploringView(
+                    currentUserProfile: $currentUserProfile,
+                    hasProfile: $hasProfile
+                )
             ) {
                 Text("Explore")
                     .padding()
@@ -212,13 +216,14 @@ struct NavigationLinksView: View {
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
-            
-            NavigationLink(destination: SettingsView()) {
+
+            NavigationLink(
+                destination: SettingsView(
+                    currentUserProfile: $currentUserProfile,
+                    proximityManager: proximityManager
+                )
+            ) {
                 Text("Settings")
-                    .padding()
-                    .background(Color.gray)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
             }
             .padding(.top)
         }

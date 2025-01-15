@@ -29,35 +29,33 @@ struct osmApp: App {
                         .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 } else {
                     ExploringView(currentUserProfile: $currentUserProfile, hasProfile: $hasProfile)
-                            .environmentObject(proximityManager)
-                            .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                            .navigationBarItems(trailing: Button(action: {
-                                showProfilePageView.toggle()
-                            }) {
-                                Image(systemName: "person.circle")
-                                    .font(.title)
-                            })
-                            .sheet(isPresented: $showProfilePageView) {
-                                if proximityManager.currentUserProfile != nil {
-                                    // Code block
-                                    ProfilePageView(
-                                        hasProfile: $hasProfile,
-                                        profile: $currentUserProfile, // Pass the binding here
-                                        isCreatingProfile: Binding.constant(false),
-                                        peer: proximityManager.getPeerID()
-                                    )
-                                    .environmentObject(proximityManager)
-                                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                                } else {
-                                    Text("No Profile Data Available")
-                                }
+                        .environmentObject(proximityManager)
+                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                        .navigationBarItems(trailing: Button(action: {
+                            showProfilePageView.toggle()
+                        }) {
+                            Image(systemName: "person.circle")
+                                .font(.title)
+                        })
+                        .sheet(isPresented: $showProfilePageView) {
+                            if proximityManager.currentUserProfile != nil {
+                                ProfilePageView(
+                                    hasProfile: $hasProfile,
+                                    profile: $currentUserProfile,
+                                    isCreatingProfile: Binding.constant(false),
+                                    peer: proximityManager.getPeerID()
+                                )
+                                .environmentObject(proximityManager)
+                                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                            } else {
+                                Text("No Profile Data Available")
                             }
-                            .onAppear {
-                                proximityManager.populateProfileIfNeeded()
-                            }
-                    }
+                        }
+                        .onAppear {
+                            proximityManager.populateProfileIfNeeded() // Ensure profile is populated when the view appears
+                        }
                 }
             }
         }
     }
-
+}
