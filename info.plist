@@ -2,22 +2,38 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>NSBonjourServices</key>
-    <array>
-        <string>_proximity1._tcp</string> <!-- Use your service type -->
-    </array>
-    <key>NSLocalNetworkUsageDescription</key>
-    <string>This app requires access to local network services to discover and connect to nearby devices.</string>
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>This app requires location access to detect nearby devices via Bluetooth</string>
-    <key>NSBluetoothPeripheralUsageDescription</key>
-    <string>This app uses Bluetooth to communicate with nearby devices</string>
-    <key>NSBluetoothAlwaysUsageDescription</key>
-    <string>This app requires access to Bluetooth to connect with nearby devices</string>
-    <key>Required background modes</key>
-    <array>
-        <string>App shares data using CoreBluetooth</string>
-        <string>App communicates using CoreBluetooth</string>
-    </array>
+	<key>UIBackgroundModes</key>
+	<array/>
+	<key>New item - 2</key>
+	<string>location</string>
+	<key>New item - 11</key>
+	<string>bluetooth-central</string>
+	<key>New item - 12</key>
+	<string>bluetooth-peripheral</string>
+	<key>New item</key>
+	<array/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app requires location access to detect nearby devices via Bluetooth</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app requires location access to detect nearby devices via Bluetooth even when the app is in the background</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app requires location access to detect nearby devices via Bluetooth </string>
+	<key>New item - 5</key>
+	<array>
+		<string>_proximity1._tcp</string>
+	</array>
+	<key>New item - 6</key>
+	<string>This app requires access to local network services to discover and connect to nearby devices.</string>
+	<key>New item - 7</key>
+	<string>This app requires location access to detect nearby devices via Bluetooth</string>
+	<key>New item - 8</key>
+	<string>This app uses Bluetooth to communicate with nearby devices</string>
+	<key>New item - 9</key>
+	<string>This app requires access to Bluetooth to connect with nearby devices</string>
+	<key>New item - 10</key>
+	<array>
+		<string>App shares data using CoreBluetooth</string>
+		<string>App communicates using CoreBluetooth</string>
+	</array>
 </dict>
 </plist>

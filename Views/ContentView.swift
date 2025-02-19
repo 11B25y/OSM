@@ -18,6 +18,7 @@ struct ContentView: View {
     @State private var showProfileCreationView = false
     @State private var navigateToExploring = false
     @State private var nearbyUsers: [UserProfile] = []
+    @StateObject private var locationManager = LocationManager() // ✅ Initialize Location Manager
 
     var body: some View {
         NavigationStack {
@@ -38,85 +39,56 @@ struct ContentView: View {
                             } else {
                                 ConnectedPeersView()
                             }
-                            if showProfilePage {
-                                ProfilePageView(
-                                    hasProfile: $hasProfile,
-                                    profile: $currentUserProfile,
-                                    isCreatingProfile: $isCreatingProfile,
-                                    peer: proximityManager.getPeerID()
-                                )
-                                .padding()
-                            }
 
-                            if let user = selectedUser {
-                                Text("Selected User: \(user.wrappedUsername)")
-                            } else {
-                                Text("Select a user to view their profile and connect")
-                                    .foregroundColor(.secondary)
-                                    .padding()
-                            }
+                            ProximityView() // ✅ Inject ProximityView here
+                                .environmentObject(proximityManager)
+                                .environmentObject(locationManager)
                         }
                     }
                 }
                 .navigationTitle("Proximity Network")
                 .onAppear {
-                    if !isShowingAlert && hasProfile {
-                        isShowingAlert = true
+                    if hasProfile {
                         proximityManager.startDiscovery()
                     }
                 }
                 .onDisappear {
-                    isShowingAlert = false
                     proximityManager.stopDiscovery()
                 }
                 .alert(item: $proximityManager.receivedInvitationFromPeer) { peer in
-                    if !isShowingAlert {
-                        isShowingAlert = true
-                        return Alert(
-                            title: Text("Received Invitation"),
-                            message: Text("You have received an invitation from \(peer.peerID.displayName)"),
-                            primaryButton: .default(Text("Accept")) {
-                                proximityManager.respondToInvitation(accepted: true)
-                                isShowingAlert = false
-                            },
-                            secondaryButton: .cancel(Text("Decline")) {
-                                proximityManager.respondToInvitation(accepted: false)
-                                isShowingAlert = false
-                            }
-                        )
-                    } else {
-                        return Alert(
-                            title: Text("Notice"),
-                            message: Text("An alert is already being shown."),
-                            dismissButton: .default(Text("OK"))
-                        )
-                    }
+                    Alert(
+                        title: Text("Received Invitation"),
+                        message: Text("You have received an invitation from \(peer.peerID.displayName)"),
+                        primaryButton: .default(Text("Accept")) {
+                            proximityManager.respondToInvitation(accepted: true)
+                        },
+                        secondaryButton: .cancel(Text("Decline")) {
+                            proximityManager.respondToInvitation(accepted: false)
+                        }
+                    )
                 }
                 .alert(isPresented: $showError) {
-                    Alert(title: Text("Error"), message: Text(errorMessage), dismissButton: .default(Text("OK")) {
-                        isShowingAlert = false
-                    })
-                }
-                .sheet(item: $selectedPeer) { peer in
-                    ProfilePageView(
-                        hasProfile: $hasProfile,
-                        profile: $currentUserProfile,
-                        isCreatingProfile: Binding.constant(false),
-                        peer: proximityManager.getPeerID()
-                    )
+                    Alert(title: Text("Error"), message: Text(errorMessage), dismissButton: .default(Text("OK")))
                 }
                 .onReceive(proximityManager.$error.compactMap { $0 }) { error in
                     errorMessage = error.localizedDescription
                     showError = true
                 }
                 .navigationDestination(isPresented: $navigateToExploring) {
-                    ExploringView(currentUserProfile: $currentUserProfile, hasProfile: $hasProfile)
+                    ProximityView() // ✅ Navigate to ProximityView on exploring
+                        .environmentObject(proximityManager)
+                        .environmentObject(locationManager)
                 }
-                .onChange(of: hasProfile) { oldValue, newValue in
+                .onChange(of: hasProfile) { _, newValue in
                     if newValue {
-                        navigateToExploring = true  // Trigger programmatic navigation
+                        navigateToExploring = true
                     }
                 }
+
+                // ✅ Add NavigationLinksView at the bottom
+                NavigationLinksView(currentUserProfile: $currentUserProfile, hasProfile: $hasProfile, locationManager: locationManager)
+                    .environmentObject(proximityManager)
+                    .environmentObject(locationManager) // ✅ Inject LocationManager properly
             }
         }
     }
@@ -201,7 +173,8 @@ struct NavigationLinksView: View {
     @Binding var currentUserProfile: UserProfile? // Ensure it's correctly bound here
     @Binding var hasProfile: Bool
     @EnvironmentObject var proximityManager: ProximityManager // Use @EnvironmentObject here
-
+    @ObservedObject var locationManager: LocationManager // Ensure access to user locations
+    
     var body: some View {
         VStack {
             NavigationLink(
@@ -216,7 +189,7 @@ struct NavigationLinksView: View {
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
-
+            
             NavigationLink(
                 destination: SettingsView(
                     currentUserProfile: $currentUserProfile,
@@ -226,6 +199,36 @@ struct NavigationLinksView: View {
                 Text("Settings")
             }
             .padding(.top)
+            
+            // Add Map View if user profile exists
+            if let currentUser = currentUserProfile, currentUser.isPremiumUser {
+                NavigationLink(destination: UserMapView(users: locationManager.nearbyUsers)) {
+                    HStack {
+                        Image(systemName: "map.fill")
+                            .font(.title)
+                            .foregroundColor(.white)
+                            .overlay(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [Color.white, Color.purple]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .clipShape(Circle())
+
+                        Text("View Users on Map")
+                    }
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                }
+                .padding(.top, 10)
+            } else {
+                Text("Upgrade to Premium to Access Map")
+                    .foregroundColor(.gray)
+                    .padding(.top, 10)
+            }
         }
     }
 }

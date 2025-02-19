@@ -3,11 +3,13 @@ import MultipeerConnectivity
 import CoreBluetooth
 import CoreData
 import Combine
+import CoreLocation
 
 class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MCSessionDelegate, MCNearbyServiceAdvertiserDelegate, MCNearbyServiceBrowserDelegate {
     
     // MARK: - Properties
     private let serviceType = "proximity1"
+    private let storedPeersKey = "storedConnectedPeers"
     
     var peerID: MCPeerID!
     private var session: MCSession!
@@ -27,6 +29,7 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
     @Published var error: Error?
     @Published var useMockProfiles: Bool = false // Flag for using mock profiles (currently unused)
     
+    
     private var currentInvitationHandler: ((Bool, MCSession?) -> Void)?
     // MARK: - Core Data
     var managedObjectContext: NSManagedObjectContext
@@ -35,9 +38,10 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
     init(context: NSManagedObjectContext) {
         self.managedObjectContext = context
         super.init()
+        
+        // Load the current user's profile
         self.currentUserProfile = UserProfile.fetchLoggedInUser(context: context)
         setupPeerID()
-        
         loadLoggedInProfile()
         
         // Initialize session and other components
@@ -47,8 +51,13 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
         self.session.delegate = self
         self.advertiser.delegate = self
         self.browser.delegate = self
+        
+        // Initialize Bluetooth Central Manager
         self.centralManager = CBCentralManager(delegate: self, queue: nil)
         checkBluetoothStatus()
+        
+        // Load and attempt to reconnect to previously saved peers
+        loadAndReconnectPeers()
     }
     // MARK: - PeerID Setup
     private func setupPeerID() {
@@ -123,23 +132,79 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
     
     // MARK: - Restart Session
     func restartSession() {
-        if connectedPeers.isEmpty {
+        guard !connectedPeers.isEmpty else {
             print("No connected peers to restart the session.")
             return
         }
         
         reconnecting = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            self.session.disconnect()
-            self.session = MCSession(peer: self.peerID, securityIdentity: nil, encryptionPreference: .required)
-            self.session.delegate = self
-            self.stopDiscovery()
-            self.startDiscovery()
-            self.reconnecting = false
-            print("Session restarted.")
+        print("Restarting session...")
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            // Attempt to reconnect with known peers before resetting session
+            self.reconnectToKnownPeers()
         }
     }
     
+    // MARK: - Attempt to Reconnect to Known Peers Before Resetting Session
+    private func reconnectToKnownPeers() {
+        print("Attempting to reconnect to known peers...")
+        
+        for peer in connectedPeers {
+            if session.connectedPeers.contains(peer.peerID) {
+                print("Peer already connected: \(peer.peerID.displayName)")
+            } else {
+                print("Reconnecting to peer: \(peer.peerID.displayName)")
+                browser.invitePeer(peer.peerID, to: session, withContext: nil, timeout: 10)
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            // If still no connections, restart session fully
+            if self.session.connectedPeers.isEmpty {
+                self.fullSessionReset()
+            } else {
+                print("Reconnection successful.")
+            }
+        }
+    }
+    
+    // Save connected peers before app exits
+    func saveConnectedPeers() {
+        let peerNames = connectedPeers.map { $0.peerID.displayName }
+        UserDefaults.standard.set(peerNames, forKey: storedPeersKey)
+        print("Saved known peers: \(peerNames)")
+    }
+
+    // Load previously connected peers and attempt reconnection
+    func loadAndReconnectPeers() {
+        guard let storedPeerNames = UserDefaults.standard.array(forKey: storedPeersKey) as? [String] else { return }
+        print("Loading known peers: \(storedPeerNames)")
+        
+        for peerName in storedPeerNames {
+            let peerID = MCPeerID(displayName: peerName)
+            reconnectToPeer(peerID)
+        }
+    }
+
+    // Attempt to reconnect to a specific peer
+    func reconnectToPeer(_ peerID: MCPeerID) {
+        print("Attempting to reconnect to \(peerID.displayName)...")
+        browser.invitePeer(peerID, to: session, withContext: nil, timeout: 10)
+    }
+    // MARK: - Full Session Reset (If Reconnection Fails)
+    private func fullSessionReset() {
+        print("Reconnection failed. Resetting session...")
+        
+        self.session.disconnect()
+        self.session = MCSession(peer: self.peerID, securityIdentity: nil, encryptionPreference: .required)
+        self.session.delegate = self
+        self.stopDiscovery()
+        self.startDiscovery()
+        
+        reconnecting = false
+        print("Session fully restarted.")
+    }
     // MARK: - Bluetooth State Management
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         DispatchQueue.main.async {
@@ -190,48 +255,44 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
     }
     
     // MARK: - Profile Handling
+    
     func createProfile(username: String, email: String, avatarURL: String, bio: String) {
         if let existingProfile = fetchUserProfile(for: peerID) {
-            // Update the existing profile
             existingProfile.username = username
             existingProfile.email = email
             existingProfile.avatarURL = avatarURL
             existingProfile.bio = bio
-            existingProfile.isLoggedIn = true // Ensure this is set
-            existingProfile.peerIDObject = peerID // Use the computed property
+            existingProfile.isLoggedIn = true
+            existingProfile.peerIDObject = peerID
             print("Updated existing profile: \(existingProfile.username ?? "Unknown")")
         } else {
-            // Create a new profile
             let profile = UserProfile(context: managedObjectContext)
             profile.username = username
             profile.email = email
             profile.avatarURL = avatarURL
             profile.bio = bio
-            profile.isLoggedIn = true // Ensure this is set
-            profile.peerIDObject = peerID // Use the computed property
+            profile.isLoggedIn = true
+            profile.peerIDObject = peerID
             print("Created new profile: \(username)")
         }
-
-        // Save the context
+        
         saveContext()
         print("ProximityManager Profile: \(currentUserProfile?.wrappedUsername ?? "None")")
     }
-
-    /// Fetches an existing profile for a peer or creates a placeholder profile if none exists.
+    
     func fetchOrCreateProfile(for peerID: MCPeerID) -> UserProfile {
         if let existingProfile = fetchUserProfile(for: peerID) {
             return existingProfile
         } else {
             let profile = UserProfile(context: managedObjectContext)
             profile.peerIDObject = peerID
-            profile.username = "Unknown User" // Placeholder until updated
+            profile.username = "Unknown User"
             saveProfileChanges(profile)
             print("Created placeholder profile for peer: \(peerID.displayName)")
             return profile
         }
     }
-
-/// fetch user data from core data
+    
     func fetchUserProfile(for peerID: MCPeerID) -> UserProfile? {
         let request: NSFetchRequest<UserProfile> = UserProfile.fetchRequest()
         request.predicate = NSPredicate(format: "peerID == %@", peerID.displayName)
@@ -242,8 +303,147 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
             return nil
         }
     }
+    // MARK: - Request Social Media
+    func requestSocialMedia(from requesterID: MCPeerID, to targetID: MCPeerID) {
+        guard let targetProfile = fetchUserProfile(for: targetID) else {
+            print("Target user not found.")
+            return
+        }
+        
+        // Store the request in Bob's profile
+        if var requests = targetProfile.socialMediaRequests as? Set<String> {
+            requests.insert(requesterID.displayName)
+            targetProfile.socialMediaRequests = requests as NSSet
+        } else {
+            targetProfile.socialMediaRequests = [requesterID.displayName] as NSSet
+        }
+        
+        saveProfileChanges(targetProfile)
+        print("\(requesterID.displayName) requested social media from \(targetID.displayName)")
+    }
 
-    /// Saves changes to the given profile in Core Data.
+    // MARK: - Approve Social Media Request
+    func approveSocialMediaRequest(for requesterID: MCPeerID, by targetID: MCPeerID) {
+        guard let targetProfile = fetchUserProfile(for: targetID),
+              let requesterProfile = fetchUserProfile(for: requesterID) else {
+            print("Either requester or target profile not found.")
+            return
+        }
+
+        // Remove request after approval
+        if var requests = targetProfile.socialMediaRequests as? Set<String> {
+            requests.remove(requesterID.displayName)
+            targetProfile.socialMediaRequests = requests as NSSet
+        }
+
+        // Copy social media links to the requester’s view
+        requesterProfile.socialMediaLinks = targetProfile.socialMediaLinks
+
+        saveProfileChanges(targetProfile)
+        saveProfileChanges(requesterProfile)
+        
+        print("\(targetID.displayName) approved social media request from \(requesterID.displayName)")
+    }
+
+    // MARK: - Reject Social Media Request
+    func rejectSocialMediaRequest(for requesterID: MCPeerID, by targetID: MCPeerID) {
+        guard let targetProfile = fetchUserProfile(for: targetID) else { return }
+        
+        if var requests = targetProfile.socialMediaRequests as? Set<String> {
+            requests.remove(requesterID.displayName)
+            targetProfile.socialMediaRequests = requests as NSSet
+            saveProfileChanges(targetProfile)
+        }
+        
+        print("\(targetID.displayName) rejected social media request from \(requesterID.displayName)")
+    }
+    
+    // MARK: - Profile Caching & Offline Handling
+    func cachePeerProfile(peerID: MCPeerID, profile: UserProfile, isMatched: Bool = false) {
+        let cachedProfile = fetchOrCreateProfile(for: peerID)
+
+        cachedProfile.username = profile.username ?? "Unknown"
+        cachedProfile.bio = profile.bio ?? "No bio available"
+        cachedProfile.avatarURL = profile.avatarURL
+        cachedProfile.email = profile.email ?? "No email"
+        cachedProfile.isLoggedIn = isMatched
+        
+        // Ensure timestamp for matched profiles if necessary
+        if isMatched {
+            cachedProfile.matchedTimestamp = Date()
+        }
+
+        saveProfileChanges(cachedProfile)
+
+        let profileType = isMatched ? "Matched" : "General"
+        print("Cached \(profileType) profile for peer: \(peerID.displayName)")
+    }
+
+    // MARK: - Fetch Offline Profiles (Optimized)
+    func fetchOfflineProfiles(includeMatched: Bool = false, includeLocation: Bool = false) -> [UserProfile] {
+        let request: NSFetchRequest<UserProfile> = UserProfile.fetchRequest()
+        var predicates: [NSPredicate] = [NSPredicate(format: "isLoggedIn == false")]
+
+        if includeMatched {
+            predicates.append(NSPredicate(format: "matchedTimestamp != nil"))
+        }
+        
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+
+        do {
+            let profiles = try managedObjectContext.fetch(request)
+            return includeLocation ? profiles.filter { $0.latitude != 0.0 && $0.longitude != 0.0 } : profiles
+        } catch {
+            print("Failed to fetch offline profiles: \(error.localizedDescription)")
+            return []
+        }
+    }
+
+    // MARK: - Auto Load Cached Profile if Needed
+    func loadCachedProfile() {
+        print("Loading last cached user profile...")
+        if let lastLoggedProfile = UserProfile.fetchLoggedInUser(context: managedObjectContext) {
+            self.currentUserProfile = lastLoggedProfile
+            print("Loaded cached profile: \(lastLoggedProfile.wrappedUsername)")
+        } else {
+            print("No cached profile found.")
+        }
+    }
+
+    func loadLoggedInProfile() {
+        print("Loading logged-in user profile...")
+        if let loggedInProfile = UserProfile.fetchLoggedInUser(context: managedObjectContext) {
+            self.currentUserProfile = loggedInProfile
+            setupPeerID()
+            print("Loaded profile: \(loggedInProfile.wrappedUsername)")
+        } else {
+            print("No logged-in profile found. Checking cache...")
+            loadCachedProfile()
+        }
+        
+        // Attempt to reconnect previously known peers
+        loadAndReconnectPeers()
+    }
+
+    // MARK: - Combined Profiles (Online + Offline)
+    func combinedProfiles(includeMatched: Bool = false, includeLocation: Bool = false) -> [UserProfile] {
+        let activePeers = connectedPeers.compactMap { $0.profile } // Peers currently connected
+        let offlineProfiles = fetchOfflineProfiles(includeMatched: includeMatched, includeLocation: includeLocation)
+        
+        return activePeers + offlineProfiles
+    }
+    
+    func syncPeerLocation(peerID: MCPeerID, location: CLLocation) {
+        if let profile = fetchUserProfile(for: peerID) {
+            profile.latitude = location.coordinate.latitude
+            profile.longitude = location.coordinate.longitude
+            saveProfileChanges(profile)
+            print("Synced location for peer: \(peerID.displayName)")
+        } else {
+            print("No profile found for peer \(peerID.displayName). Cannot sync location.")
+        }
+    }
+    
     func saveProfileChanges(_ profile: UserProfile) {
         do {
             try managedObjectContext.save()
@@ -252,8 +452,7 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
             print("Failed to save profile: \(error), \(error.userInfo)")
         }
     }
-
-    /// Saves the current Core Data context.
+    
     func saveContext() {
         do {
             try managedObjectContext.save()
@@ -263,18 +462,21 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
             self.error = error
         }
     }
-    // MARK: - Load Logged-In Profile
-    func loadLoggedInProfile() {
-        print("Loading logged-in user profile...")
-        if let loggedInProfile = UserProfile.fetchLoggedInUser(context: managedObjectContext) {
-            self.currentUserProfile = loggedInProfile
-            setupPeerID()
-            print("Loaded profile: \(loggedInProfile.wrappedUsername)")
-        } else {
-            print("No logged-in profile found.")
-            self.currentUserProfile = nil
+    
+    func markCurrentUserAsOffline() {
+        guard let userProfile = currentUserProfile else {
+            print("No logged-in user profile to mark as offline.")
+            return
         }
+        userProfile.isLoggedIn = false
+        saveProfileChanges(userProfile)
+        
+        // Save connected peers before marking offline
+        saveConnectedPeers()
+        
+        print("User marked as offline: \(userProfile.wrappedUsername)")
     }
+ 
     // MARK: - MCSessionDelegate
     func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
         DispatchQueue.main.async {
@@ -287,23 +489,23 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
                     print("Connected peer profile: \(profile.wrappedUsername)")
                 }
                 self.reconnecting = false
-
+                
             case .notConnected:
                 print("Peer disconnected: \(peerID.displayName)")
                 self.connectedPeers.removeAll { $0.peerID == peerID }
                 if self.connectedPeers.isEmpty {
                     self.restartSession()
                 }
-
+                
             case .connecting:
                 print("Peer connecting: \(peerID.displayName)")
-
+                
             @unknown default:
                 print("Unknown state for peer: \(peerID.displayName)")
             }
         }
     }
-
+    
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         if let message = String(data: data, encoding: .utf8) {
             DispatchQueue.main.async {
@@ -314,17 +516,17 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
             print("Failed to decode received data from \(peerID.displayName)")
         }
     }
-
+    
     func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {
         print("Received stream \(streamName) from peer: \(peerID.displayName)")
         // You can implement stream handling here if required.
     }
-
+    
     func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {
         print("Started receiving resource \(resourceName) from peer: \(peerID.displayName)")
         // Handle resource receiving progress here if necessary.
     }
-
+    
     func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at url: URL?, withError error: Error?) {
         if let error = error {
             print("Failed to receive resource \(resourceName) from peer \(peerID.displayName): \(error.localizedDescription)")
@@ -332,6 +534,7 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
             print("Successfully received resource \(resourceName) from peer \(peerID.displayName) at URL: \(url)")
         }
     }
+    
     // MARK: - MCNearbyServiceAdvertiserDelegate
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID, withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {
         DispatchQueue.main.async {

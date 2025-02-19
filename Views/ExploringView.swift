@@ -26,57 +26,60 @@ struct ExploringView: View {
     var body: some View {
         ZStack {
             NavigationStack {
-                ZStack {
-                    VStack(spacing: 0) {
-                        // Header with hamburger menu
-                        HStack {
-                            Button(action: toggleMenu) {
-                                Image(systemName: "line.horizontal.3")
-                                    .resizable()
-                                    .frame(width: 20, height: 20)
-                                    .padding(10)
-                                    .foregroundColor(.black)
-                            }
-                            Spacer()
-                            // Profile icon at the top right
-                            if let profile = currentUserProfile {
-                                Button(action: {
-                                    showProfile = true
-                                }) {
-                                    VStack {
-                                        ProfileImageView(
-                                            profileImageName: profile.avatarURL,
-                                            size: 40,
-                                            isTappable: false
-                                        )
-                                    }
-                                }
-                                .popover(isPresented: $showProfile) {
-                                    ProfileDetailsView(profile: profile)
-                                }
-                            }
+                VStack(spacing: 0) {
+                    // ✅ HEADER: Hamburger Menu + Profile Icon
+                    HStack {
+                        // Hamburger Menu Button
+                        Button(action: toggleMenu) {
+                            Image(systemName: "line.horizontal.3")
+                                .resizable()
+                                .frame(width: 20, height: 20)
+                                .padding(10)
+                                .foregroundColor(.black)
                         }
-                        .padding(.horizontal)
-
-                        // Main content aligned to top
-                        VStack {
-                            if proximityManager.connectedPeers.isEmpty {
-                                Text("No connected peers")
-                                    .padding()
-                            } else {
-                                connectedPeerBubblesView()
+                        Spacer()
+                
+                        Button(action: {
+                            if let userProfile = currentUserProfile {
+                                enlargedProfile = userProfile // Assign user profile directly
+                                showProfile = true
                             }
-
-                            Spacer()
+                        }) {
+                            Image(systemName: "person.circle")
+                                .resizable()
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(.black)
+                                .padding(10)
                         }
+                    }
+                    .padding(.horizontal)
+
+                    // ✅ MAIN CONTENT: Connected Users or No Peers Message
+                    VStack {
+                        if proximityManager.connectedPeers.isEmpty {
+                            Text("No connected peers")
+                                .padding()
+                        } else {
+                            connectedPeerBubblesView()
+                        }
+                        Spacer()
                     }
                     .offset(x: contentOffset)
                     .scaleEffect(showMenu ? 0.8 : 1.0)
                 }
 
-                NavigationLink(value: currentUserProfile) {
-                    EmptyView()
+                // ✅ PROFILE PAGE SHEET (For when profile icon is tapped)
+                .sheet(isPresented: $showProfile) {
+                    if let profile = currentUserProfile {
+                        ProfilePageView(
+                            hasProfile: $hasProfile,
+                            profile: .constant(profile),
+                            isCreatingProfile: $isCreatingProfile
+                        )
+                    }
                 }
+
+                // ✅ NAVIGATION DESTINATION FOR PROFILE PAGE
                 .navigationDestination(for: UserProfile.self) { profile in
                     ProfilePageView(
                         hasProfile: $hasProfile,
@@ -121,25 +124,7 @@ struct ExploringView: View {
                     VStack {
                         // Menu Items
                         VStack(spacing: 20) {
-                            // Profile Page
-                            NavigationLink(destination:
-                                ProfilePageView(
-                                    hasProfile: $hasProfile,
-                                    profile: $currentUserProfile,
-                                    isCreatingProfile: $isCreatingProfile
-                                )
-                            ) {
-                                HStack {
-                                    Image(systemName: "person.circle")
-                                    Text("Profile")
-                                        .foregroundColor(.white)
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(.gray)
-                                }
-                                .padding()
-                            }
-
+                            
                             // Settings Page
                             NavigationLink(destination:
                                 SettingsView(
@@ -173,18 +158,11 @@ struct ExploringView: View {
 
                             Spacer()
 
-                            // Dark Mode Toggle
-                            VStack {
-                                HStack(spacing: 10) {
-                                    Text("🌞").font(.system(size: 20))
-                                    Toggle("", isOn: $isDarkMode)
-                                        .toggleStyle(SwitchToggleStyle(tint: .yellow))
-                                        .frame(width: 40, height: 20)
-                                        .scaleEffect(0.5)
-                                    Text("🌚").font(.system(size: 20))
-                                }
-                                .padding(.bottom, 20)
-                            }
+                            CustomToggle(isOn: $isDarkMode)
+                                .frame(width: 6, height: 3) // Smaller than before
+                                .scaleEffect(0.25) // Slightly smaller scale
+                                .padding(.vertical, 2)
+                                .padding(.trailing, 10)
                         }
                         .frame(width: menuWidth)
                         .frame(maxHeight: .infinity)

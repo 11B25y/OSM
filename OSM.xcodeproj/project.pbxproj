@@ -15,6 +15,8 @@
 		DB149C252CD8EC9A00E6D3D9 /* ProfileImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB149C242CD8EC9A00E6D3D9 /* ProfileImageView.swift */; };
 		DB149C272CE2A03200E6D3D9 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB149C262CE2A03200E6D3D9 /* ImagePicker.swift */; };
 		DB149C2B2CE4EE6500E6D3D9 /* SideMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB149C2A2CE4EE6500E6D3D9 /* SideMenuView.swift */; };
+		DB2D26E02D529A5600ABCAB0 /* UserMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB2D26DF2D529A5600ABCAB0 /* UserMapView.swift */; };
+		DB2D26E82D61E55100ABCAB0 /* UiverseStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB2D26E72D61E55100ABCAB0 /* UiverseStyle.swift */; };
 		DB335F662CA0DEE00067546D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB335F622CA0DEE00067546D /* ContentView.swift */; };
 		DB335F732CA0E0F60067546D /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DB335F712CA0E0F60067546D /* Model.xcdatamodeld */; };
 		DB335F762CA2FD3F0067546D /* SwiftView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB335F742CA2FD310067546D /* SwiftView.swift */; };
@@ -43,9 +45,9 @@
 		DB699A7E2CF4DD40003792B6 /* ProfileSignupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB699A7D2CF4DD40003792B6 /* ProfileSignupView.swift */; };
 		DB699A802D03382C003792B6 /* OpenAIAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB699A7F2D03382C003792B6 /* OpenAIAPI.swift */; };
 		DB699A832D0B3C50003792B6 /* InviteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB699A822D0B3C50003792B6 /* InviteView.swift */; };
-		DB699A882D13A916003792B6 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB699A872D13A916003792B6 /* UserProfile.swift */; };
-		DB699A8C2D146993003792B6 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = DB699A8B2D146993003792B6 /* Lottie */; };
 		DB699A902D35BFDE003792B6 /* ProfileDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB699A8F2D35BFDE003792B6 /* ProfileDetailsView.swift */; };
+		DB699A962D428ADA003792B6 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB699A942D428ADA003792B6 /* UserProfile.swift */; };
+		DB699A982D467DE6003792B6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB699A972D467DE6003792B6 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,6 +76,8 @@
 		DB149C242CD8EC9A00E6D3D9 /* ProfileImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileImageView.swift; sourceTree = "<group>"; };
 		DB149C262CE2A03200E6D3D9 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		DB149C2A2CE4EE6500E6D3D9 /* SideMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideMenuView.swift; sourceTree = "<group>"; };
+		DB2D26DF2D529A5600ABCAB0 /* UserMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMapView.swift; sourceTree = "<group>"; };
+		DB2D26E72D61E55100ABCAB0 /* UiverseStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UiverseStyle.swift; sourceTree = "<group>"; };
 		DB335F622CA0DEE00067546D /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		DB335F722CA0E0F60067546D /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		DB335F742CA2FD310067546D /* SwiftView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftView.swift; sourceTree = "<group>"; };
@@ -103,8 +107,9 @@
 		DB699A7D2CF4DD40003792B6 /* ProfileSignupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSignupView.swift; sourceTree = "<group>"; };
 		DB699A7F2D03382C003792B6 /* OpenAIAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OpenAIAPI.swift; path = Views/OpenAIAPI.swift; sourceTree = SOURCE_ROOT; };
 		DB699A822D0B3C50003792B6 /* InviteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteView.swift; sourceTree = "<group>"; };
-		DB699A872D13A916003792B6 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
 		DB699A8F2D35BFDE003792B6 /* ProfileDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDetailsView.swift; sourceTree = "<group>"; };
+		DB699A942D428ADA003792B6 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
+		DB699A972D467DE6003792B6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DBD380052CA0CC9E000E27BE /* OSM.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OSM.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DBD380152CA0CCA1000E27BE /* OSMTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OSMTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DBD3801F2CA0CCA1000E27BE /* OSMUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OSMUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -133,7 +138,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DB699A8C2D146993003792B6 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -163,8 +167,10 @@
 				DB699A7D2CF4DD40003792B6 /* ProfileSignupView.swift */,
 				DB149C1E2CD8EC4100E6D3D9 /* UserProfileRowView.swift */,
 				DB149C242CD8EC9A00E6D3D9 /* ProfileImageView.swift */,
+				DB699A972D467DE6003792B6 /* AppDelegate.swift */,
 				DB149C222CD8EC5F00E6D3D9 /* ErrorAlertView.swift */,
 				DB538D5D2CB4C09600EED31E /* SelectedPeer.swift */,
+				DB2D26E72D61E55100ABCAB0 /* UiverseStyle.swift */,
 				DB149C202CD8EC5300E6D3D9 /* SocialMediaLinksView.swift */,
 				DB699A8F2D35BFDE003792B6 /* ProfileDetailsView.swift */,
 				DB149C1C2CD8EA0600E6D3D9 /* NearbyUsersView.swift */,
@@ -184,6 +190,7 @@
 				DB335F7B2CA2FE480067546D /* WelcomeView.swift */,
 				DB335F742CA2FD310067546D /* SwiftView.swift */,
 				DB335F622CA0DEE00067546D /* ContentView.swift */,
+				DB2D26DF2D529A5600ABCAB0 /* UserMapView.swift */,
 				DB699A7F2D03382C003792B6 /* OpenAIAPI.swift */,
 			);
 			path = Views;
@@ -200,8 +207,8 @@
 				DB335F872CA308BF0067546D /* ChatRoom.swift */,
 				DB335F882CA308BF0067546D /* FileTransfer.swift */,
 				DB538D442CAF9F4B00EED31E /* Messages.swift */,
-				DB699A872D13A916003792B6 /* UserProfile.swift */,
 				DB335F852CA308BF0067546D /* BluetoothEvent.swift */,
+				DB699A942D428ADA003792B6 /* UserProfile.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -249,7 +256,6 @@
 			);
 			name = OSM;
 			packageProductDependencies = (
-				DB699A8B2D146993003792B6 /* Lottie */,
 			);
 			productName = OSM;
 			productReference = DBD380052CA0CC9E000E27BE /* OSM.app */;
@@ -335,7 +341,6 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				DB699A812D06615D003792B6 /* XCRemoteSwiftPackageReference "swift-algorithms" */,
-				DB699A8A2D146993003792B6 /* XCRemoteSwiftPackageReference "lottie-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DBD380062CA0CC9E000E27BE /* Products */;
@@ -378,11 +383,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB2D26E02D529A5600ABCAB0 /* UserMapView.swift in Sources */,
 				DB699A802D03382C003792B6 /* OpenAIAPI.swift in Sources */,
 				DB335F662CA0DEE00067546D /* ContentView.swift in Sources */,
+				DB699A962D428ADA003792B6 /* UserProfile.swift in Sources */,
 				DB149C232CD8EC5F00E6D3D9 /* ErrorAlertView.swift in Sources */,
 				DB538D522CB2D98D00EED31E /* PrimaryButtonStyle.swift in Sources */,
-				DB699A882D13A916003792B6 /* UserProfile.swift in Sources */,
 				DB6202BF2CEA1B770078DD1B /* PeerDevice.swift in Sources */,
 				DB538D5A2CB4A78800EED31E /* PeerBubbleView.swift in Sources */,
 				DB149C2B2CE4EE6500E6D3D9 /* SideMenuView.swift in Sources */,
@@ -401,11 +407,13 @@
 				DB335F9B2CA308BF0067546D /* ChatRoom.swift in Sources */,
 				DB335F9D2CA308BF0067546D /* SessionInfo.swift in Sources */,
 				DB149C212CD8EC5300E6D3D9 /* SocialMediaLinksView.swift in Sources */,
+				DB2D26E82D61E55100ABCAB0 /* UiverseStyle.swift in Sources */,
 				DB335F9E2CA308BF0067546D /* FileTransfer.swift in Sources */,
 				DB335F9F2CA308BF0067546D /* BluetoothEvent.swift in Sources */,
 				DB4A87242CD179820071C123 /* SettingsView.swift in Sources */,
 				DB149C252CD8EC9A00E6D3D9 /* ProfileImageView.swift in Sources */,
 				DB4A871A2CC9277A0071C123 /* ConnectedPeersView.swift in Sources */,
+				DB699A982D467DE6003792B6 /* AppDelegate.swift in Sources */,
 				DB335F832CA3004C0067546D /* OnboardingView.swift in Sources */,
 				DB335F762CA2FD3F0067546D /* SwiftView.swift in Sources */,
 				DB538D4C2CB2D44700EED31E /* ExploringView.swift in Sources */,
@@ -580,6 +588,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = /Users/d.osmosis/Desktop/OSM/info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -610,6 +619,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = /Users/d.osmosis/Desktop/OSM/info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -750,23 +760,7 @@
 				minimumVersion = 1.2.0;
 			};
 		};
-		DB699A8A2D146993003792B6 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.5.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		DB699A8B2D146993003792B6 /* Lottie */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DB699A8A2D146993003792B6 /* XCRemoteSwiftPackageReference "lottie-ios" */;
-			productName = Lottie;
-		};
-/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		DB335F712CA0E0F60067546D /* Model.xcdatamodeld */ = {

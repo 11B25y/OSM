@@ -82,8 +82,9 @@ struct ProfileSignupView: View {
                 Button("Create Profile") {
                     createProfile()
                 }
+                .buttonStyle(UiverseButtonStyle()) 
                 .padding()
-                .background(Color.blue)
+                .background(Color.white)
                 .foregroundColor(.white)
                 .cornerRadius(10)
                 

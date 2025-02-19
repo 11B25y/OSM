@@ -11,6 +11,7 @@ struct MessagingView: View {
     @State private var animateStatusChange = false
     
     var peer: SelectedPeer // Passed from ProximityView or selected peer from the invitation
+    var selectedUser: UserProfile?
 
     var body: some View {
         VStack {
@@ -65,15 +66,19 @@ struct MessagingView: View {
     // Function to send message
     private func sendMessage() {
         guard !message.isEmpty else { return }
-        let formattedMessage = "Me: \(message)"
-        messages.append(formattedMessage)
-        
-        if let data = message.data(using: .utf8) {
-            // Send message to the peer using peer.peerID
-            proximityManager.send(data: data, to: [peer.peerID])
+
+        withAnimation {
+            messages.append("Me: \(message)")
         }
-        
-        message = "" // Clear the message input after sending
+
+        if let data = message.data(using: .utf8) {
+            // Ensure selectedUser is available, otherwise use peer
+            if let peerToSend = selectedUser ?? peer.profile, let peerID = peerToSend.peerIDObject {
+                proximityManager.send(data: data, to: [peerID])
+            }
+        }
+
+        message = "" // Clear message input after sending
     }
 
     // Function to setup message receiving
@@ -96,7 +101,7 @@ struct MessageListView: View {
         ScrollViewReader { scrollViewProxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    ForEach(messages.indices, id: \.self) { index in
+                    ForEach(messages.indices, id: \ .self) { index in
                         let message = messages[index]
                         HStack {
                             if message.hasPrefix("Me:") {

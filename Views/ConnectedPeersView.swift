@@ -45,15 +45,7 @@ struct ConnectedPeersView: View {
                                     .aspectRatio(contentMode: .fit)
                                     .frame(width: 40, height: 40)
                                     .clipShape(Circle())
-                            } else {
-                                // Default image when image data is invalid or not found
-                                Image(systemName: "person.circle.fill")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 40, height: 40)
-                                    .background(Color.blue)
-                                    .clipShape(Circle())
-                            }
+                            } 
                         }
 
                         VStack(alignment: .leading) {

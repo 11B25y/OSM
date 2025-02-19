@@ -46,8 +46,8 @@ struct SettingsView: View {
                 }
 
                 Toggle("Show Only Subscribed Users", isOn: $showOnlySubscribed)
-                    .onChange(of: showOnlySubscribed) {
-                        proximityManager.updateSubscriptionFilter($0)
+                    .onChange(of: showOnlySubscribed) { newValue in
+                        proximityManager.updateSubscriptionFilter(newValue)
                     }
             }
 
