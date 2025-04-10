@@ -8,7 +8,7 @@ public class UserProfile: NSManagedObject {
     @nonobjc public class func fetchRequest() -> NSFetchRequest<UserProfile> {
         return NSFetchRequest<UserProfile>(entityName: "UserProfile")
     }
-
+    
     // MARK: - Core Data Attributes
     @NSManaged public var age: Int16
     @NSManaged public var avatarURL: String?
@@ -27,39 +27,39 @@ public class UserProfile: NSManagedObject {
     @NSManaged public var socialMediaRequests: NSSet?
     @NSManaged public var userRating: UserRating?
     @NSManaged public var isPremiumUser: Bool
-
+    
     // MARK: - Computed Properties
     public var wrappedUsername: String {
         username ?? "Unknown User"
     }
-
+    
     public var wrappedEmail: String {
         email ?? "No Email Provided"
     }
-
+    
     public var wrappedStatus: String {
         status ?? "No Status"
     }
-
+    
     public var wrappedBio: String {
         bio ?? "No Bio"
     }
-
+    
     public var wrappedAvatarURL: URL? {
         if let urlString = avatarURL {
             return URL(string: urlString)
         }
         return nil
     }
-
+    
     public var wrappedLatitude: Double {
         latitude
     }
-
+    
     public var wrappedLongitude: Double {
         longitude
     }
-
+    
     // MARK: - PeerID Handling
     public var peerIDObject: MCPeerID? {
         get {
@@ -70,38 +70,24 @@ public class UserProfile: NSManagedObject {
             peerID = newValue?.displayName
         }
     }
-
+    
     // MARK: - Equatable Conformance
     public static func == (lhs: UserProfile, rhs: UserProfile) -> Bool {
         return lhs.peerID == rhs.peerID
     }
-
+    
     // MARK: - Profile Management Methods
     public func updateProfile(username: String, email: String, bio: String, avatarURL: String, context: NSManagedObjectContext) {
         self.username = username
         self.email = email
         self.bio = bio
         self.avatarURL = avatarURL
-
+        
         do {
             try context.save()
             print("Profile updated successfully.")
         } catch {
             print("Failed to update profile: \(error.localizedDescription)")
-        }
-    }
-
-    // MARK: - Fetch Logged-In User Helper
-    public class func fetchLoggedInUser(context: NSManagedObjectContext) -> UserProfile? {
-        let request: NSFetchRequest<UserProfile> = UserProfile.fetchRequest()
-        request.predicate = NSPredicate(format: "isLoggedIn == true")
-        request.fetchLimit = 1
-
-        do {
-            return try context.fetch(request).first
-        } catch {
-            print("Failed to fetch logged-in user: \(error.localizedDescription)")
-            return nil
         }
     }
 }

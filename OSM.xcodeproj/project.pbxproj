@@ -40,6 +40,9 @@
 		DB538D582CB334EF00EED31E /* IdentifiablePeer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB538D572CB334EF00EED31E /* IdentifiablePeer.swift */; };
 		DB538D5A2CB4A78800EED31E /* PeerBubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB538D592CB4A78800EED31E /* PeerBubbleView.swift */; };
 		DB538D5E2CB4C09600EED31E /* SelectedPeer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB538D5D2CB4C09600EED31E /* SelectedPeer.swift */; };
+		DB5D92782D883AAC009A1130 /* GraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB5D92772D883AAC009A1130 /* GraphView.swift */; };
+		DB5D927A2D883AE2009A1130 /* NodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB5D92792D883AE2009A1130 /* NodeView.swift */; };
+		DB5D927C2D884004009A1130 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB5D927B2D884004009A1130 /* Node.swift */; };
 		DB6202BF2CEA1B770078DD1B /* PeerDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6202BA2CEA1B770078DD1B /* PeerDevice.swift */; };
 		DB6202C22CEB3BDB0078DD1B /* ImageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6202C12CEB3BDB0078DD1B /* ImageManager.swift */; };
 		DB699A7E2CF4DD40003792B6 /* ProfileSignupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB699A7D2CF4DD40003792B6 /* ProfileSignupView.swift */; };
@@ -102,6 +105,9 @@
 		DB538D572CB334EF00EED31E /* IdentifiablePeer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentifiablePeer.swift; sourceTree = "<group>"; };
 		DB538D592CB4A78800EED31E /* PeerBubbleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeerBubbleView.swift; sourceTree = "<group>"; };
 		DB538D5D2CB4C09600EED31E /* SelectedPeer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedPeer.swift; sourceTree = "<group>"; };
+		DB5D92772D883AAC009A1130 /* GraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphView.swift; sourceTree = "<group>"; };
+		DB5D92792D883AE2009A1130 /* NodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeView.swift; sourceTree = "<group>"; };
+		DB5D927B2D884004009A1130 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		DB6202BA2CEA1B770078DD1B /* PeerDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeerDevice.swift; sourceTree = "<group>"; };
 		DB6202C12CEB3BDB0078DD1B /* ImageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageManager.swift; sourceTree = "<group>"; };
 		DB699A7D2CF4DD40003792B6 /* ProfileSignupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSignupView.swift; sourceTree = "<group>"; };
@@ -175,7 +181,10 @@
 				DB699A8F2D35BFDE003792B6 /* ProfileDetailsView.swift */,
 				DB149C1C2CD8EA0600E6D3D9 /* NearbyUsersView.swift */,
 				DB538D592CB4A78800EED31E /* PeerBubbleView.swift */,
+				DB5D927B2D884004009A1130 /* Node.swift */,
 				DB149C262CE2A03200E6D3D9 /* ImagePicker.swift */,
+				DB5D92772D883AAC009A1130 /* GraphView.swift */,
+				DB5D92792D883AE2009A1130 /* NodeView.swift */,
 				DB6202C12CEB3BDB0078DD1B /* ImageManager.swift */,
 				DB538D572CB334EF00EED31E /* IdentifiablePeer.swift */,
 				DB699A822D0B3C50003792B6 /* InviteView.swift */,
@@ -387,6 +396,7 @@
 				DB699A802D03382C003792B6 /* OpenAIAPI.swift in Sources */,
 				DB335F662CA0DEE00067546D /* ContentView.swift in Sources */,
 				DB699A962D428ADA003792B6 /* UserProfile.swift in Sources */,
+				DB5D927A2D883AE2009A1130 /* NodeView.swift in Sources */,
 				DB149C232CD8EC5F00E6D3D9 /* ErrorAlertView.swift in Sources */,
 				DB538D522CB2D98D00EED31E /* PrimaryButtonStyle.swift in Sources */,
 				DB6202BF2CEA1B770078DD1B /* PeerDevice.swift in Sources */,
@@ -396,6 +406,7 @@
 				DB149C272CE2A03200E6D3D9 /* ImagePicker.swift in Sources */,
 				DB6202C22CEB3BDB0078DD1B /* ImageManager.swift in Sources */,
 				DB699A7E2CF4DD40003792B6 /* ProfileSignupView.swift in Sources */,
+				DB5D92782D883AAC009A1130 /* GraphView.swift in Sources */,
 				DB149C1A2CD5703B00E6D3D9 /* SocialMediaLink.swift in Sources */,
 				DB538D4A2CB2D23C00EED31E /* ReconnectingView.swift in Sources */,
 				DB538D502CB2D4C000EED31E /* MessagingView.swift in Sources */,
@@ -404,6 +415,7 @@
 				DB538D5E2CB4C09600EED31E /* SelectedPeer.swift in Sources */,
 				DB149C1F2CD8EC4100E6D3D9 /* UserProfileRowView.swift in Sources */,
 				DB335F982CA308BF0067546D /* UserRating.swift in Sources */,
+				DB5D927C2D884004009A1130 /* Node.swift in Sources */,
 				DB335F9B2CA308BF0067546D /* ChatRoom.swift in Sources */,
 				DB335F9D2CA308BF0067546D /* SessionInfo.swift in Sources */,
 				DB149C212CD8EC5300E6D3D9 /* SocialMediaLinksView.swift in Sources */,

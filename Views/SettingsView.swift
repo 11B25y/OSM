@@ -7,7 +7,7 @@ struct SettingsView: View {
     @State private var showSubscriptionOptions = false
     @State private var filterDistance: Double = 100
     @State private var showOnlySubscribed = false
-
+    
     var body: some View {
         List {
             // Account Section
@@ -20,7 +20,7 @@ struct SettingsView: View {
                     }
                 }
             }
-
+            
             // Subscription Section
             Section(header: Text("Subscription")) {
                 Button(action: {
@@ -33,7 +33,7 @@ struct SettingsView: View {
                     }
                 }
             }
-
+            
             // Peer Filters Section
             Section(header: Text("Peer Filters")) {
                 VStack(alignment: .leading) {
@@ -44,44 +44,41 @@ struct SettingsView: View {
                         }
                     }
                 }
-
+                
                 Toggle("Show Only Subscribed Users", isOn: $showOnlySubscribed)
-                    .onChange(of: showOnlySubscribed) { newValue in
-                        proximityManager.updateSubscriptionFilter(newValue)
+                    .onChange(of: showOnlySubscribed) { proximityManager.updateSubscriptionFilter($0) }
+                
+                // App Settings Section
+                Section(header: Text("App Settings")) {
+                    NavigationLink(destination: Text("Notifications")) {
+                        Text("Notification Settings")
                     }
-            }
-
-            // App Settings Section
-            Section(header: Text("App Settings")) {
-                NavigationLink(destination: Text("Notifications")) {
-                    Text("Notification Settings")
+                    
+                    NavigationLink(destination: Text("Privacy")) {
+                        Text("Privacy Settings")
+                    }
                 }
-
-                NavigationLink(destination: Text("Privacy")) {
-                    Text("Privacy Settings")
-                }
-            }
-
-            // Log Out Button
-            Section {
-                Button(action: {
-                    isLoggedIn = false // Log the user out
-                }) {
-                    HStack {
-                        Spacer()
-                        Text("Log Out")
-                            .foregroundColor(.red)
-                        Spacer()
+                
+                // Log Out Button
+                Section {
+                    Button(action: {
+                        isLoggedIn = false // Log the user out
+                    }) {
+                        HStack {
+                            Spacer()
+                            Text("Log Out")
+                                .foregroundColor(.red)
+                            Spacer()
+                        }
                     }
                 }
             }
-        }
-        .navigationTitle("Settings")
-        .sheet(isPresented: $showSubscriptionOptions) {
-            // Subscription options view
-            Text("Subscription Options")
-                .presentationDetents([.medium])
+            .navigationTitle("Settings")
+            .sheet(isPresented: $showSubscriptionOptions) {
+                // Subscription options view
+                Text("Subscription Options")
+                    .presentationDetents([.medium])
+            }
         }
     }
 }
-

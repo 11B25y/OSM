@@ -10,20 +10,20 @@ struct osmApp: App {
     @AppStorage("hasSeenOnboarding") var hasSeenOnboarding: Bool = false
     @AppStorage("isLoggedIn") var isLoggedIn: Bool = false
     @State private var showWelcomeScreen = true
-    @StateObject private var locationManager = LocationManager()
     @State private var showProfilePageView = false
     @State private var hasProfile: Bool = false
     @State private var currentUserProfile: UserProfile?
     @State private var showImagePicker: Bool = false
     @State private var isCreatingProfile: Bool = false
     
+    // LocationManager initialization
+    @StateObject private var locationManager = LocationManager.shared
+    @StateObject private var proximityManager = ProximityManager(context: PersistenceController.shared.container.viewContext)
     
     init() {
         // Pass the ProximityManager to the AppDelegate
-        appDelegate.proximityManager?.startDiscovery()
-        
-        // Request location authorization
-        locationManager.requestAuthorization()
+        appDelegate.proximityManager?.loadLoggedInProfile() // Load profile before discovery
+        appDelegate.proximityManager?.startDiscovery() // Start discovery on initialization
     }
     
     var body: some Scene {
@@ -60,7 +60,7 @@ struct osmApp: App {
                                         peer: proximityManager.getPeerID()
                                     )
                                     .environmentObject(proximityManager)
-                                    .environmentObject(locationManager) // Pass LocationManager
+                                    .environmentObject(locationManager) // Pass LocationManager to ProfilePageView
                                     .environment(\.managedObjectContext, persistenceController.container.viewContext)
                                 } else {
                                     Text("No Profile Data Available")
@@ -68,10 +68,10 @@ struct osmApp: App {
                             }
                             .onAppear {
                                 proximityManager.populateProfileIfNeeded() // Ensure profile is loaded
-                                locationManager.startUpdatingLocation() // Start location updates
+                                locationManager.startUpdatingLocation() // Start location updates when the view appears
                             }
                             .onDisappear {
-                                locationManager.stopUpdatingLocation() // Stop location updates
+                                locationManager.stopUpdatingLocation() // Stop location updates when the view disappears
                             }
                     }
                 }
@@ -82,23 +82,11 @@ struct osmApp: App {
         .onChange(of: scenePhase) { newPhase in
             switch newPhase {
             case .active:
-                print("App became active")
-                // Restart discovery and attempt reconnection
-                appDelegate.proximityManager?.startDiscovery()
-                appDelegate.proximityManager?.loadAndReconnectPeers()
-                
-            case .inactive:
-                print("App became inactive")
-                // Optionally stop sensitive tasks or save the current state
-                
+                locationManager.startUpdatingLocation()
             case .background:
-                print("App moved to background")
-                // Mark the user offline and stop discovery to save resources
-                appDelegate.proximityManager?.markCurrentUserAsOffline()
-                appDelegate.proximityManager?.stopDiscovery()
-                
-            @unknown default:
-                print("Unknown scene phase")
+                locationManager.stopUpdatingLocation()
+            default:
+                break
             }
         }
     }

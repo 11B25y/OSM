@@ -4,8 +4,10 @@ import MultipeerConnectivity
 
 struct ExploringView: View {
     @EnvironmentObject private var proximityManager: ProximityManager
+    @EnvironmentObject var locationManager: LocationManager
     @Binding var currentUserProfile: UserProfile?
     @Binding var hasProfile: Bool
+    
     @State private var selectedPeer: SelectedPeer?
     @State private var enlargedProfile: UserProfile?
     @State private var isProfileSelected: Bool = false
@@ -13,7 +15,6 @@ struct ExploringView: View {
     @State private var showProfile: Bool = false
     @State private var selectedImage: UIImage?
     @State private var showImagePicker: Bool = false
-    @State private var profileImageName: String = "profileImage"
     @State private var cancellables = Set<AnyCancellable>()
     @State private var showError = false
     @State private var errorMessage: String = ""
@@ -22,6 +23,7 @@ struct ExploringView: View {
     @State private var menuOffset: CGFloat = -300
     @State private var contentOffset: CGFloat = 0
     @State private var menuWidth: CGFloat = UIScreen.main.bounds.width * 0.6
+    @State private var isRefreshing = false
 
     var body: some View {
         ZStack {
@@ -39,9 +41,10 @@ struct ExploringView: View {
                         }
                         Spacer()
                 
+                        // Profile Icon Button
                         Button(action: {
                             if let userProfile = currentUserProfile {
-                                enlargedProfile = userProfile // Assign user profile directly
+                                enlargedProfile = userProfile
                                 showProfile = true
                             }
                         }) {
@@ -60,15 +63,23 @@ struct ExploringView: View {
                             Text("No connected peers")
                                 .padding()
                         } else {
-                            connectedPeerBubblesView()
-                        }
+                            List {
+                                // Display connected peers in a List with swipe-to-refresh
+                                ForEach(proximityManager.connectedPeers, id: \.peerID) { peer in
+                                    Text(peer.peerID.displayName)
+                                }
+                            }
+                            .refreshable {
+                                // Refresh action: Reload peers or data here
+                                refreshPeers()
+                            }                        }
                         Spacer()
                     }
                     .offset(x: contentOffset)
                     .scaleEffect(showMenu ? 0.8 : 1.0)
                 }
 
-                // ✅ PROFILE PAGE SHEET (For when profile icon is tapped)
+                // ✅ PROFILE PAGE SHEET
                 .sheet(isPresented: $showProfile) {
                     if let profile = currentUserProfile {
                         ProfilePageView(
@@ -88,25 +99,30 @@ struct ExploringView: View {
                     )
                 }
 
+                // ✅ IMAGE PICKER SHEET
                 .sheet(isPresented: $showImagePicker) {
                     ImagePicker(selectedImage: $selectedImage)
                         .onDisappear {
                             if let image = selectedImage {
                                 if let savedURL = ImageManager.saveImage(image, withName: "UserProfileImage") {
-                                    print("Image saved at: \(savedURL)")
+                                    print("✅ Image saved at: \(savedURL)")
                                 }
                             }
                         }
                 }
 
                 .onAppear {
-                    proximityManager.startDiscovery()
-                    setupErrorHandling()
-                    // Debugging connected peers
-                    print("Connected Peers: \(proximityManager.connectedPeers.map { $0.peerID.displayName })")
+                    // Ensure the logged-in user profile is loaded when the view appears
+                    proximityManager.loadLoggedInProfile()  // Call the method directly
+                    proximityManager.loadAndReconnectPeers() // Reload peers
+                    proximityManager.populateProfileIfNeeded() // Ensure profile is populated if needed
+
+                    proximityManager.startDiscovery() // Start discovery
+                    setupErrorHandling() // Existing error handling setup
+                    print("🔍 Connected Peers: \(proximityManager.connectedPeers.map { $0.peerID.displayName })")
                 }
                 .onDisappear {
-                    proximityManager.stopDiscovery()
+                    proximityManager.stopDiscovery() // Keep this as it is for stopping discovery
                 }
                 .alert(isPresented: $showError) {
                     Alert(
@@ -118,7 +134,7 @@ struct ExploringView: View {
                 .preferredColorScheme(isDarkMode ? .dark : .light)
             }
 
-            // Side Menu
+            // ✅ SIDE MENU
             if showMenu {
                 HStack {
                     VStack {
@@ -143,7 +159,7 @@ struct ExploringView: View {
                                 .padding()
                             }
 
-                            // Page 3 (Empty/Reserved)
+                            // Coming Soon Placeholder
                             NavigationLink(destination: Text("Coming Soon")) {
                                 HStack {
                                     Image(systemName: "star")
@@ -158,9 +174,10 @@ struct ExploringView: View {
 
                             Spacer()
 
+                            // ✅ CUSTOM DARK MODE TOGGLE
                             CustomToggle(isOn: $isDarkMode)
-                                .frame(width: 6, height: 3) // Smaller than before
-                                .scaleEffect(0.25) // Slightly smaller scale
+                                .frame(width: 6, height: 3)
+                                .scaleEffect(0.25)
                                 .padding(.vertical, 2)
                                 .padding(.trailing, 10)
                         }
@@ -183,6 +200,19 @@ struct ExploringView: View {
         }
     }
 
+    // Refresh method for updating peers
+    private func refreshPeers() {
+        // Start the refreshing state
+        isRefreshing = true
+        
+        // Perform the logic to reload peers from ProximityManager
+        proximityManager.loadAndReconnectPeers() // No need for await if this isn't async
+        
+        // End the refreshing state
+        isRefreshing = false
+    }
+
+    /// ✅ Toggle Side Menu
     private func toggleMenu() {
         withAnimation {
             showMenu.toggle()
@@ -191,6 +221,7 @@ struct ExploringView: View {
         }
     }
 
+    /// ✅ Error Handling
     private func setupErrorHandling() {
         proximityManager.$error
             .compactMap { $0?.localizedDescription }
@@ -201,6 +232,7 @@ struct ExploringView: View {
             .store(in: &cancellables)
     }
 
+    /// ✅ Connected Peer Bubbles
     private func connectedPeerBubblesView() -> some View {
         ZStack {
             ForEach(proximityManager.connectedPeers, id: \.peerID) { peer in
@@ -215,7 +247,7 @@ struct ExploringView: View {
                             size: enlargedProfile?.peerIDObject == peer.peerID ? 60 : 40,
                             isTappable: true,
                             onTap: {
-                                print("Tapped on peer: \(peer.profile?.wrappedUsername ?? "Unknown")")
+                                print("👤 Tapped on peer: \(peer.profile?.wrappedUsername ?? "Unknown")")
                             }
                         )
                     }
@@ -232,6 +264,7 @@ struct ExploringView: View {
         }
     }
 
+    /// ✅ Set Appearance for Dark Mode
     private func setAppearance(isDark: Bool) {
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
             for window in windowScene.windows {

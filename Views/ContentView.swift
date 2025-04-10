@@ -18,7 +18,7 @@ struct ContentView: View {
     @State private var showProfileCreationView = false
     @State private var navigateToExploring = false
     @State private var nearbyUsers: [UserProfile] = []
-    @StateObject private var locationManager = LocationManager() // ✅ Initialize Location Manager
+    @StateObject private var locationManager = LocationManager.shared // ✅ Initialize Location Manager
 
     var body: some View {
         NavigationStack {

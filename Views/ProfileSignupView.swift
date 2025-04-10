@@ -82,7 +82,7 @@ struct ProfileSignupView: View {
                 Button("Create Profile") {
                     createProfile()
                 }
-                .buttonStyle(UiverseButtonStyle()) 
+                .buttonStyle(UiverseButtonStyle())
                 .padding()
                 .background(Color.white)
                 .foregroundColor(.white)
@@ -123,6 +123,7 @@ struct ProfileSignupView: View {
             proximityManager.currentUserProfile = profile
             currentUserProfile = profile
             hasProfile = true
+            proximityManager.createProfile(profile) // Integrate with ProximityManager
             print("hasProfile in ProfileSignupView (inside createProfile): \(hasProfile)")
         } catch {
             errorMessage = "Failed to save profile: \(error.localizedDescription)"

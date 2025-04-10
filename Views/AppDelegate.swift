@@ -8,8 +8,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         // Initialize the ProximityManager with the Core Data context
-        let context = PersistenceController.shared.container.viewContext
-        proximityManager = ProximityManager(context: context)
+        proximityManager = ProximityManager.shared // ✅ Use the shared instance
         return true
     }
 

@@ -8,21 +8,20 @@ struct MessagingView: View {
     @State private var messages: [String] = [] // Sent/received messages list
     @State private var isTyping = false
     @State private var cancellables = Set<AnyCancellable>()
-    @State private var animateStatusChange = false
     
     var peer: SelectedPeer // Passed from ProximityView or selected peer from the invitation
     var selectedUser: UserProfile?
 
     var body: some View {
         VStack {
-            // Display peer's avatar and name
+            // ✅ Display peer's avatar and name
             if let avatarURL = peer.profile?.wrappedAvatarURL {
                 AsyncImage(url: avatarURL) { image in
                     image.resizable()
                 } placeholder: {
                     ProgressView()
                 }
-                .frame(width: 100, height: 100)
+                .frame(width: 80, height: 80)
                 .clipShape(Circle())
                 .overlay(Circle().stroke(Color.white, lineWidth: 4))
                 .shadow(radius: 5)
@@ -31,24 +30,23 @@ struct MessagingView: View {
             Text(peer.profile?.wrappedUsername ?? "Unknown User")
                 .font(.headline)
 
-            // Message List - using MessageListView
+            // ✅ Message List
             MessageListView(messages: messages)
 
-            // Message Input
+            // ✅ Message Input
             HStack {
                 TextField("Enter message", text: $message)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .onChange(of: message) {
-                        isTyping = !message.isEmpty
-                    }
+                    .onChange(of: message) { isTyping = !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
                 
-                Button("Send") {
-                    sendMessage()
+                Button(action: sendMessage) {
+                    Image(systemName: "paperplane.fill")
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(8)
                 }
-                .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(8)
+                .disabled(message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
             .padding()
 
@@ -63,37 +61,42 @@ struct MessagingView: View {
         }
     }
 
-    // Function to send message
+    /// ✅ Send Message
     private func sendMessage() {
-        guard !message.isEmpty else { return }
+        let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedMessage.isEmpty else { return }
 
         withAnimation {
-            messages.append("Me: \(message)")
+            messages.append("Me: \(trimmedMessage)")
         }
 
-        if let data = message.data(using: .utf8) {
-            // Ensure selectedUser is available, otherwise use peer
-            if let peerToSend = selectedUser ?? peer.profile, let peerID = peerToSend.peerIDObject {
-                proximityManager.send(data: data, to: [peerID])
-            }
+        if let data = trimmedMessage.data(using: .utf8),
+           let peerToSend = selectedUser ?? peer.profile,
+           let peerID = peerToSend.peerIDObject {
+            
+            proximityManager.send(data: data, to: [peerID])
+            print("📤 Sent message: \(trimmedMessage) to \(peerID.displayName)")
         }
 
-        message = "" // Clear message input after sending
+        message = "" // Clear message input
+        isTyping = false
     }
 
-    // Function to setup message receiving
+    /// ✅ Setup Incoming Messages
     private func setupMessageReceiving() {
         proximityManager.$receivedMessages
-            .dropFirst() // Ignore initial values
+            .dropFirst() // Ignore initial empty state
             .sink { newMessages in
-                // Append any new messages from peers into the local messages list
-                messages.append(contentsOf: newMessages)
+                DispatchQueue.main.async {
+                    self.messages.append(contentsOf: newMessages)
+                    print("📩 Received messages: \(newMessages)")
+                }
             }
             .store(in: &cancellables)
     }
 }
 
-// MessageListView - displays the list of messages
+// ✅ MessageListView - Displays Messages
 struct MessageListView: View {
     var messages: [String]
     
@@ -101,7 +104,7 @@ struct MessageListView: View {
         ScrollViewReader { scrollViewProxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    ForEach(messages.indices, id: \ .self) { index in
+                    ForEach(messages.indices, id: \.self) { index in
                         let message = messages[index]
                         HStack {
                             if message.hasPrefix("Me:") {
@@ -114,7 +117,7 @@ struct MessageListView: View {
                             } else {
                                 Text(message)
                                     .padding()
-                                    .background(Color.gray)
+                                    .background(Color.gray.opacity(0.2))
                                     .cornerRadius(10)
                                 Spacer()
                             }
