@@ -1,24 +1,52 @@
 import Foundation
 
-let apiKey = "your-actual-api-key-here"
+// Load the API key from a secure source. The key can be provided through the
+// `OPENAI_API_KEY` environment variable or the application's Info.plist. This
+// avoids storing the key directly in source code.
+let apiKey: String = {
+    if let envKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"] {
+        return envKey
+    }
+
+    if let plistKey = Bundle.main.object(forInfoDictionaryKey: "OPENAI_API_KEY") as? String {
+        return plistKey
+    }
+
+    print("Warning: OPENAI_API_KEY not set")
+    return ""
+}()
+
+// Load the OpenAI model to use. Defaults to gpt-3.5-turbo if not specified.
+let openAIModel: String = {
+    if let envModel = ProcessInfo.processInfo.environment["OPENAI_MODEL"] {
+        return envModel
+    }
+
+    if let plistModel = Bundle.main.object(forInfoDictionaryKey: "OPENAI_MODEL") as? String {
+        return plistModel
+    }
+
+    return "gpt-3.5-turbo"
+}()
 
 // Function to get response from OpenAI API
 func getResponse(from prompt: String, completion: @escaping (String?) -> Void) {
-    guard let url = URL(string: "https://api.openai.com/v1/completions") else {
+    guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else {
         completion(nil)
         return
     }
-    
+
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-    
+
     // Prepare the body of the request with the prompt and model
     let body: [String: Any] = [
-        "model": "text-davinci-003",  // You may want to update this to use a newer model, such as "gpt-3.5-turbo" or "gpt-4"
-        "prompt": prompt,             // Pass the prompt dynamically
-        "max_tokens": 150            // Adjust token size as needed
+        "model": openAIModel,
+        "messages": [
+            ["role": "user", "content": prompt]
+        ]
     ]
     
     // Serialize the body to JSON format
@@ -47,8 +75,9 @@ func getResponse(from prompt: String, completion: @escaping (String?) -> Void) {
         do {
             if let decodedResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                let choices = decodedResponse["choices"] as? [[String: Any]],
-               let text = choices.first?["text"] as? String {
-                completion(text)
+               let message = choices.first?["message"] as? [String: Any],
+               let content = message["content"] as? String {
+                completion(content)
             } else {
                 print("Unexpected response format")
                 completion(nil)
