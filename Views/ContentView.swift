@@ -153,15 +153,9 @@ struct SelectedUserProfileView: View {
     }
     
     private func sendInvite() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            let success = Bool.random()
-            if success {
-                inviteStatus = .pending
-            } else {
-                isShowingError = true
-                errorMessage = "Failed to send invite. Please try again."
-            }
-        }
+        let peerID = MCPeerID(displayName: user.name)
+        ProximityManager.shared.invite(peerID)
+        inviteStatus = .pending
     }
     
     private func sendMessage() {

@@ -229,6 +229,13 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
         browser.invitePeer(peerID, to: session, withContext: nil, timeout: 10)  // Log invitation attempts
     }
 
+    /// Invite a peer to join the current session.
+    /// - Parameter peerID: The peer identifier to invite.
+    public func invite(_ peerID: MCPeerID) {
+        print("Inviting \(peerID.displayName)")
+        browser.invitePeer(peerID, to: session, withContext: nil, timeout: 10)
+    }
+
      // MARK: - Message Handling
     func sendMessage(_ message: String) {
         guard !message.isEmpty else { return }

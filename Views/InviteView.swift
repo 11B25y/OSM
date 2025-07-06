@@ -38,8 +38,9 @@ struct InviteView: View {
     }
 
     func sendInvite() {
-        // Add your invitation logic here. This could be sending a message or using the MultipeerConnectivity framework to send the invite.
-        // This is just a placeholder function.
-        isInviteSent = true
+        if let peer = peer {
+            ProximityManager.shared.invite(peer.peerID)
+            isInviteSent = true
+        }
     }
 }
