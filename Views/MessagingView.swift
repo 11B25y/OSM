@@ -4,131 +4,128 @@ import Combine
 
 struct MessagingView: View {
     @EnvironmentObject private var proximityManager: ProximityManager
-    @State private var message: String = "" // User's message input
-    @State private var messages: [String] = [] // Sent/received messages list
+    let peer: SelectedPeer
+
+    @State private var draftMessage: String = ""
+    @State private var messages: [String] = []
     @State private var isTyping = false
     @State private var cancellables = Set<AnyCancellable>()
-    
-    var peer: SelectedPeer // Passed from ProximityView or selected peer from the invitation
-    var selectedUser: UserProfile?
 
     var body: some View {
-        VStack {
-            // ✅ Display peer's avatar and name
-            if let avatarURL = peer.profile?.wrappedAvatarURL {
-                AsyncImage(url: avatarURL) { image in
+        VStack(spacing: 16) {
+            // Peer avatar & name
+            if let url = peer.profile?.wrappedAvatarURL {
+                AsyncImage(url: url) { image in
                     image.resizable()
                 } placeholder: {
-                    ProgressView()
+                    Color.gray.opacity(0.2)
                 }
                 .frame(width: 80, height: 80)
                 .clipShape(Circle())
-                .overlay(Circle().stroke(Color.white, lineWidth: 4))
-                .shadow(radius: 5)
+                .shadow(radius: 4)
             }
-
-            Text(peer.profile?.wrappedUsername ?? "Unknown User")
+            Text(peer.profile?.wrappedUsername ?? "Unknown")
                 .font(.headline)
 
-            // ✅ Message List
+            Divider()
+
+            // Message history
             MessageListView(messages: messages)
 
-            // ✅ Message Input
-            HStack {
-                TextField("Enter message", text: $message)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .onChange(of: message) { isTyping = !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-                
-                Button(action: sendMessage) {
-                    Image(systemName: "paperplane.fill")
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(8)
-                }
-                .disabled(message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            }
-            .padding()
+            Divider()
 
+            // Typing indicator (optional)
             if isTyping {
-                Text("\(peer.profile?.wrappedUsername ?? "Unknown User") is typing...")
+                Text("\(peer.profile?.wrappedUsername ?? "User") is typing...")
                     .font(.caption)
                     .foregroundColor(.gray)
             }
+
+            // Input field + send button
+            HStack {
+                TextField("Message…", text: $draftMessage)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .onChange(of: draftMessage) { text in
+                        isTyping = !text.trimmingCharacters(in: .whitespaces).isEmpty
+                    }
+
+                Button(action: sendMessage) {
+                    Image(systemName: "paperplane.fill")
+                        .padding(8)
+                        .background(draftMessage.trimmingCharacters(in: .whitespaces).isEmpty ? Color.gray : Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
+                .disabled(draftMessage.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+            .padding(.horizontal)
         }
-        .onAppear {
-            setupMessageReceiving()
-        }
+        .padding(.vertical)
+        .navigationTitle(peer.profile?.wrappedUsername ?? "Chat")
+        .onAppear(perform: setupSubscriptions)
     }
 
-    /// ✅ Send Message
     private func sendMessage() {
-        let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedMessage.isEmpty else { return }
+        let text = draftMessage.trimmingCharacters(in: .whitespaces)
+        guard !text.isEmpty, let peerID = peer.profile?.peerIDObject else { return }
 
-        withAnimation {
-            messages.append("Me: \(trimmedMessage)")
-        }
+        // Append to local UI
+        messages.append("Me: \(text)")
+        proximityManager.sendMessage(text)
 
-        if let data = trimmedMessage.data(using: .utf8),
-           let peerToSend = selectedUser ?? peer.profile,
-           let peerID = peerToSend.peerIDObject {
-            
-            proximityManager.send(data: data, to: [peerID])
-            print("📤 Sent message: \(trimmedMessage) to \(peerID.displayName)")
-        }
-
-        message = "" // Clear message input
+        draftMessage = ""
         isTyping = false
     }
 
-    /// ✅ Setup Incoming Messages
-    private func setupMessageReceiving() {
+    private func setupSubscriptions() {
         proximityManager.$receivedMessages
-            .dropFirst() // Ignore initial empty state
-            .sink { newMessages in
+            .sink { all in
+                let prefix = "\(peer.peerID.displayName):"
+                let newMsgs = all.filter { $0.hasPrefix(prefix) }
                 DispatchQueue.main.async {
-                    self.messages.append(contentsOf: newMessages)
-                    print("📩 Received messages: \(newMessages)")
+                    for msg in newMsgs {
+                        if !messages.contains(msg) {
+                            messages.append(msg)
+                        }
+                    }
                 }
             }
             .store(in: &cancellables)
     }
 }
 
-// ✅ MessageListView - Displays Messages
 struct MessageListView: View {
     var messages: [String]
-    
+
     var body: some View {
-        ScrollViewReader { scrollViewProxy in
+        ScrollViewReader { proxy in
             ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(messages.indices, id: \.self) { index in
-                        let message = messages[index]
+                VStack(spacing: 8) {
+                    ForEach(messages.indices, id: \.self) { i in
+                        let msg = messages[i]
                         HStack {
-                            if message.hasPrefix("Me:") {
+                            if msg.hasPrefix("Me:") {
                                 Spacer()
-                                Text(message)
-                                    .padding()
+                                Text(msg)
+                                    .padding(8)
                                     .background(Color.blue)
                                     .foregroundColor(.white)
-                                    .cornerRadius(10)
+                                    .cornerRadius(8)
                             } else {
-                                Text(message)
-                                    .padding()
+                                Text(msg)
+                                    .padding(8)
                                     .background(Color.gray.opacity(0.2))
-                                    .cornerRadius(10)
+                                    .cornerRadius(8)
                                 Spacer()
                             }
                         }
-                        .id(index)
+                        .id(i)
                     }
                 }
-                .padding()
+                .padding(.horizontal)
             }
-            .onChange(of: messages.count) { _, _ in
-                scrollViewProxy.scrollTo(messages.count - 1)
+            .onChange(of: messages.count) { _ in
+                proxy.scrollTo(messages.count - 1, anchor: .bottom)
             }
         }
     }

@@ -45,20 +45,31 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
     init(context: NSManagedObjectContext) {
         self.managedObjectContext = context
         super.init()
-        
-        setupPeerID()  // Ensure peerID is set before using it
-        populateProfileIfNeeded()
-        loadLoggedInProfile()  // This should not be removed!
-        
-        self.session = MCSession(peer: self.peerID, securityIdentity: nil, encryptionPreference: .required)
-        self.advertiser = MCNearbyServiceAdvertiser(peer: self.peerID, discoveryInfo: nil, serviceType: serviceType)
-        self.browser = MCNearbyServiceBrowser(peer: self.peerID, serviceType: serviceType)
-        
-        self.session.delegate = self
-        self.advertiser.delegate = self
-        self.browser.delegate = self
-        
-        self.centralManager = CBCentralManager(delegate: self, queue: nil)
+
+        // 1) Load your real user profile first:
+        setupPeerID()             // sets self.peerID from currentUserProfile or device name
+        populateProfileIfNeeded() // fetch existing profile if any
+        loadLoggedInProfile()     // loads the logged-in profile and assigns peerID accordingly
+
+        // 2) Now create your Multipeer session/advertiser/browser
+        session = MCSession(peer: self.peerID,
+                            securityIdentity: nil,
+                            encryptionPreference: .required)
+        advertiser = MCNearbyServiceAdvertiser(
+            peer: self.peerID,
+            discoveryInfo: nil,      // no custom room tag
+            serviceType: serviceType
+        )
+        browser = MCNearbyServiceBrowser(peer: self.peerID,
+                                         serviceType: serviceType)
+
+        // 3) Wire up delegates
+        session.delegate    = self
+        advertiser.delegate = self
+        browser.delegate    = self
+
+        // 4) Kick off Bluetooth and discovery
+        centralManager = CBCentralManager(delegate: self, queue: nil)
         checkBluetoothStatus()
         loadAndReconnectPeers()
     }
@@ -497,9 +508,8 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
     // MARK: - MCNearbyServiceAdvertiserDelegate
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID, withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {
         DispatchQueue.main.async {
-            self.receivedInvitationFromPeer = IdentifiablePeer(peerID: peerID)
-            self.currentInvitationHandler = invitationHandler
-            print("Received invitation from peer: \(peerID.displayName)")
+            print("Auto-accepting invite from \(peerID.displayName)")
+            invitationHandler(true, self.session)
         }
     }
     
@@ -521,6 +531,8 @@ class ProximityManager: NSObject, ObservableObject, CBCentralManagerDelegate, MC
             if !self.connectedPeers.contains(where: { $0.peerID == peerID }) {
                 let profile = self.fetchOrCreateProfile(for: peerID)
                 self.connectedPeers.append(SelectedPeer(id: UUID(), peerID: peerID, profile: profile))
+                browser.invitePeer(peerID, to: self.session, withContext: nil, timeout: 20)
+                print("Auto-invited \(peerID.displayName)")
             }
         }
     }

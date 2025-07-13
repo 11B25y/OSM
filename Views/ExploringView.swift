@@ -120,7 +120,10 @@ struct ExploringView: View {
                 }
                 // Show MessagingView when a peer is selected
                 .sheet(item: $selectedPeer) { peer in
-                    MessagingView(peer: peer)
+                    NavigationStack {
+                        MessagingView(peer: peer)
+                            .environmentObject(proximityManager)
+                    }
                 }
                 // Show an alert when another peer sends an invitation
                 .alert(item: $proximityManager.receivedInvitationFromPeer) { peer in
