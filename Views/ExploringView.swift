@@ -64,7 +64,7 @@ struct ExploringView: View {
                                 .padding()
                         } else {
                             List {
-                                ForEach(proximityManager.connectedPeers, id: \.peerID) { peer in
+                                ForEach(proximityManager.connectedPeers) { peer in
                                     HStack {
                                         Text(peer.peerID.displayName)
                                         Spacer()
@@ -247,7 +247,7 @@ struct ExploringView: View {
     /// ✅ Connected Peer Bubbles
     private func connectedPeerBubblesView() -> some View {
         ZStack {
-            ForEach(proximityManager.connectedPeers, id: \.peerID) { peer in
+            ForEach(proximityManager.connectedPeers) { peer in
                 VStack {
                     Button(action: {
                         self.selectedPeer = peer
