@@ -64,9 +64,17 @@ struct ExploringView: View {
                                 .padding()
                         } else {
                             List {
-                                // Display connected peers in a List with swipe-to-refresh
-                                ForEach(proximityManager.connectedPeers, id: \.peerID) { peer in
-                                    Text(peer.peerID.displayName)
+                                ForEach(proximityManager.connectedPeers) { peer in
+                                    HStack {
+                                        Text(peer.peerID.displayName)
+                                        Spacer()
+                                        Button("Invite") {
+                                            proximityManager.invite(peer.peerID)
+                                        }
+                                        Button("Message") {
+                                            selectedPeer = peer
+                                        }
+                                    }
                                 }
                             }
                             .refreshable {
@@ -109,6 +117,23 @@ struct ExploringView: View {
                                 }
                             }
                         }
+                }
+                // Show MessagingView when a peer is selected
+                .sheet(item: $selectedPeer) { peer in
+                    MessagingView(peer: peer)
+                }
+                // Show an alert when another peer sends an invitation
+                .alert(item: $proximityManager.receivedInvitationFromPeer) { peer in
+                    Alert(
+                        title: Text("Invitation from \(peer.displayName)"),
+                        message: Text("Do you want to accept the invitation?"),
+                        primaryButton: .default(Text("Accept")) {
+                            proximityManager.respondToInvitation(accepted: true)
+                        },
+                        secondaryButton: .cancel(Text("Decline")) {
+                            proximityManager.respondToInvitation(accepted: false)
+                        }
+                    )
                 }
 
                 .onAppear {
@@ -235,7 +260,7 @@ struct ExploringView: View {
     /// ✅ Connected Peer Bubbles
     private func connectedPeerBubblesView() -> some View {
         ZStack {
-            ForEach(proximityManager.connectedPeers, id: \.peerID) { peer in
+            ForEach(proximityManager.connectedPeers) { peer in
                 VStack {
                     Button(action: {
                         self.selectedPeer = peer
