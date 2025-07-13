@@ -64,9 +64,17 @@ struct ExploringView: View {
                                 .padding()
                         } else {
                             List {
-                                // Display connected peers in a List with swipe-to-refresh
                                 ForEach(proximityManager.connectedPeers, id: \.peerID) { peer in
-                                    Text(peer.peerID.displayName)
+                                    HStack {
+                                        Text(peer.peerID.displayName)
+                                        Spacer()
+                                        Button("Invite") {
+                                            proximityManager.invite(peer.peerID)
+                                        }
+                                        Button("Message") {
+                                            selectedPeer = peer
+                                        }
+                                    }
                                 }
                             }
                             .refreshable {
@@ -109,6 +117,10 @@ struct ExploringView: View {
                                 }
                             }
                         }
+                }
+                // Show MessagingView when a peer is selected
+                .sheet(item: $selectedPeer) { peer in
+                    MessagingView(peer: peer)
                 }
 
                 .onAppear {
