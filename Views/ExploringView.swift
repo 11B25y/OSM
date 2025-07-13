@@ -7,7 +7,7 @@ struct ExploringView: View {
     @EnvironmentObject var locationManager: LocationManager
     @Binding var currentUserProfile: UserProfile?
     @Binding var hasProfile: Bool
-    
+
     @State private var selectedPeer: SelectedPeer?
     @State private var enlargedProfile: UserProfile?
     @State private var isProfileSelected: Bool = false
@@ -40,7 +40,7 @@ struct ExploringView: View {
                                 .foregroundColor(.black)
                         }
                         Spacer()
-                
+
                         // Profile Icon Button
                         Button(action: {
                             if let userProfile = currentUserProfile {
@@ -64,7 +64,7 @@ struct ExploringView: View {
                                 .padding()
                         } else {
                             List {
-                                ForEach(proximityManager.connectedPeers, id: \.peerID) { peer in
+                                ForEach(proximityManager.connectedPeers) { peer in
                                     HStack {
                                         Text(peer.peerID.displayName)
                                         Spacer()
@@ -122,6 +122,19 @@ struct ExploringView: View {
                 .sheet(item: $selectedPeer) { peer in
                     MessagingView(peer: peer)
                 }
+                // Show an alert when another peer sends an invitation
+                .alert(item: $proximityManager.receivedInvitationFromPeer) { peer in
+                    Alert(
+                        title: Text("Invitation from \(peer.displayName)"),
+                        message: Text("Do you want to accept the invitation?"),
+                        primaryButton: .default(Text("Accept")) {
+                            proximityManager.respondToInvitation(accepted: true)
+                        },
+                        secondaryButton: .cancel(Text("Decline")) {
+                            proximityManager.respondToInvitation(accepted: false)
+                        }
+                    )
+                }
 
                 .onAppear {
                     // Ensure the logged-in user profile is loaded when the view appears
@@ -152,7 +165,7 @@ struct ExploringView: View {
                     VStack {
                         // Menu Items
                         VStack(spacing: 20) {
-                            
+
                             // Settings Page
                             NavigationLink(destination:
                                 SettingsView(
@@ -216,10 +229,10 @@ struct ExploringView: View {
     private func refreshPeers() {
         // Start the refreshing state
         isRefreshing = true
-        
+
         // Perform the logic to reload peers from ProximityManager
         proximityManager.loadAndReconnectPeers() // No need for await if this isn't async
-        
+
         // End the refreshing state
         isRefreshing = false
     }
@@ -247,19 +260,25 @@ struct ExploringView: View {
     /// ✅ Connected Peer Bubbles
     private func connectedPeerBubblesView() -> some View {
         ZStack {
-            ForEach(proximityManager.connectedPeers, id: \.peerID) { peer in
+            ForEach(proximityManager.connectedPeers) { peer in
                 VStack {
                     Button(action: {
                         self.selectedPeer = peer
                         self.enlargedProfile = peer.profile
                         self.isProfileSelected = true
+
+                        // Extract the name first, so we don’t have to nest quotes
+                        let tappedName = peer.profile?.wrappedUsername ?? "Unknown"
+                        print("👤 Tapped on peer: \(tappedName)")
                     }) {
                         ProfileImageView(
                             profileImageName: peer.profile?.avatarURL,
                             size: enlargedProfile?.peerIDObject == peer.peerID ? 60 : 40,
                             isTappable: true,
                             onTap: {
-                                print("👤 Tapped on peer: \(peer.profile?.wrappedUsername ?? "Unknown")")
+                                // same trick here if you ever need to log inside the closure
+                                let name = peer.profile?.wrappedUsername ?? "Unknown"
+                                print("👤 onTap peered: \(name)")
                             }
                         )
                     }
